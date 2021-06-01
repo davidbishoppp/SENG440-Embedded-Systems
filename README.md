@@ -1,6 +1,7 @@
-# csc440
+# SENG440
 
 RSA Swag Cryptography
 
-gcc main.c -o main
-./main {P} {Q} {E} {D} {encrypted value} {decrypted value}
+### Usage
+Build with `gcc main.c -o main`\
+Run with `./main {P} {Q} {E} {D} {encrypted value} {decrypted value}`

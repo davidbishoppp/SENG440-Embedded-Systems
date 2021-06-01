@@ -90,8 +90,8 @@ int MEwithMMM(int X, int E, int M ) {
 int main(int argc, char* argv[]) {
 	if (argc != 7) {
 		printf("Need P, Q, E, D and the encripted/dectripted text!\n");
-		printf("got:\n");
-		for (int i = 0; i < argc; i++) {
+		printf("Got:\n");
+		for (int i = 1; i < argc; i++) {
 			printf("%s\n", argv[i]);
 		}
 		return 0;
