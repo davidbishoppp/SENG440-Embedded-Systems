@@ -7,7 +7,7 @@ int bitLength(int M) {
 	int m = 0;
 	int tmp = M;
 	// Find actual length of M
-	for (int i = 0; i < (sizeof(M) * 8); i++) {
+	for (int i = 0; i < (sizeof(M) * __CHAR_BIT__); i++) {
 		if (tmp & 1) {
 			m = i + 1;
 		}
@@ -16,17 +16,25 @@ int bitLength(int M) {
 	return m;
 }
 
+// X: data (either decrypted or encrypted int) (base)
+// E: public exponent (exponential)
+// M: PQ (divisor)
 int ME(int X, int E, int M ) {
-	int Z = 1;
-	int P = X;
-	for (int i = 0; i < (sizeof(E) * 8); i++) {
-		//printf("ME: P = %i, Z = %i\n", P, Z);
-		if  ((E >> i) & 1) {
-			Z = (Z*P) % M;
+	int result = 1;
+
+	X = X % M;
+
+	while(E > 0) {
+		if(E % 2 == 1) {
+			result = (result * X) % M;
 		}
-		P = (P*P) % M;
+
+		//shift bits by 1 
+		E >>= 1;
+		X = (X * X) % M;
 	}
-	return Z;
+
+	return result;
 }
 
 int MMM(int X, int Y, int M) {\
@@ -60,12 +68,12 @@ int MEwithMMM(int X, int E, int M ) {
 	int Zbar;
 
 	int R = 2 << bitLength(M);
-	for (int i = 0; i < (sizeof(M) * 8); i++) {
+	for (int i = 0; i < (sizeof(M) * __CHAR_BIT__); i++) { //correct
 		//printf("MMM: P = %i, Z = %i\n", P, Z);
 		if  ((E >> i) & 1) {
 			Z = (Z*P) % M;
 		}
-		Xbar = MMM(P, R*R, M);
+		Xbar = MMM(P, R*R, M); //somehwere here
 		Ybar = MMM(P, R*R, M);
 		Zbar = MMM(Ybar, Xbar, M);
 		P = MMM(Zbar, 1, M);
@@ -85,25 +93,32 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	int P = atoi(argv[1]);
-	int Q = atoi(argv[2]);
-	int E = atoi(argv[3]);
-	int D = atoi(argv[4]);
+	int P = atoi(argv[1]); //first prime
+	int Q = atoi(argv[2]); //second prime
+	int E = atoi(argv[3]); //public exponent
+	int D = atoi(argv[4]); //private exponent
 
-	int encrypted = atoi(argv[5]);
-	int decrypted = atoi(argv[6]);
+	int encrypted = atoi(argv[5]); //encrypted plaintext
+	int decrypted = atoi(argv[6]); //decrypted cypher
 
-	int decrypted_encrypted = MEwithMMM(decrypted, E, (P*Q));
-	if (encrypted != decrypted_encrypted) {
+	//test ME only
+	int enrcypt_test = ME(decrypted, E, (P*Q));
+	if (encrypted != enrcypt_test) {
 		printf("Encryption does not match\n");
-		printf("%i does not equal %i\n", encrypted, decrypted_encrypted);
+		printf("%i does not equal %i\n", encrypted, enrcypt_test);
 		return 0;
 	}
+	else {
+		printf("Encrypted successfully!\n");
+	}
 
-	int encrypted_decrypted = MEwithMMM(encrypted, D, (P*Q));
-	if (decrypted != encrypted_decrypted) {
+	return 0;
+
+
+	int decrypt_test = MEwithMMM(encrypted, D, (P*Q));
+	if (decrypted != decrypt_test) {
 		printf("Decryption does not match\n");
-		printf("%i does not equal %i\n", decrypted, encrypted_decrypted);
+		printf("%i does not equal %i\n", decrypted, decrypt_test);
 		return 0;
 	} 
 
