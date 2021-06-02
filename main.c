@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 int bitLength(int M) {
 	int m = 0;
@@ -19,7 +20,7 @@ int ME(int X, int E, int M ) {
 	int Z = 1;
 	int P = X;
 	for (int i = 0; i < (sizeof(E) * 8); i++) {
-		//printf("P = %i\n", P);
+		//printf("ME: P = %i, Z = %i\n", P, Z);
 		if  ((E >> i) & 1) {
 			Z = (Z*P) % M;
 		}
@@ -28,17 +29,21 @@ int ME(int X, int E, int M ) {
 	return Z;
 }
 
-int mmm(int X, int Y, int M) {
-	int m = bitLength(M);
-
+int MMM(int X, int Y, int M) {\
 	int T = 0;
-	for (int i = 0; i < m; i++) {
-		int Xi = (X >> i) & 1;
-		int T0 = (T & 1);
-		int Y0 = (Y & 1);
+	int Xi;
+	int T0;
+	int Y0;
+	int n;
+	//printf("i | X(i) | n | T\n");
+	for (int i = 0; i < bitLength(M); i++) {
+		Xi = (X >> i) & 0x1;
+		T0 = (T & 0x1);
+		Y0 = (Y & 0x1);
 
-		int n = T0 ^ (Xi & Y0);
+		n = T0 ^ (Xi & Y0);
 		T = (T + (Xi * Y) + (n * M)) >> 1;
+		//printf("%i | %i | %i | %i\n", i, Xi, n, T);
 	}
 	if (T >= M) {
 		T = T - M;
@@ -46,41 +51,24 @@ int mmm(int X, int Y, int M) {
 	return T;
 }
 
-int MMM(int X, int Y, int M) {
-	int m = bitLength(M);
-
-	int R = 2 << m;
-
-	// Prescale
-	X = mmm(X, R * R, M);
-	Y = mmm(Y, R * R, M);
-
-	int T = 0;
-	for (int i = 0; i < m; i++) {
-		int Xi = (X >> i) & 1;
-		int T0 = (T & 1);
-		int Y0 = (Y & 1);
-
-		int n = T0 ^ (Xi & Y0);
-		T = (T + (Xi * Y) + (n * M)) >> 1;
-	}
-	if (T >= M) {
-		T = T - M;
-	}
-
-	//Unscale
-	return mmm(T, 1, M);
-}
-
 int MEwithMMM(int X, int E, int M ) {
 	int Z = 1;
 	int P = X;
-	for (int i = 0; i < bitLength(E); i++) {
-		//printf("P = %i\n", P);
-		if  (((E >> i) & 1) == 1) {
-			Z = MMM(Z, P, M);
+
+	int Xbar;
+	int Ybar;
+	int Zbar;
+
+	int R = 2 << bitLength(M);
+	for (int i = 0; i < (sizeof(M) * 8); i++) {
+		//printf("MMM: P = %i, Z = %i\n", P, Z);
+		if  ((E >> i) & 1) {
+			Z = (Z*P) % M;
 		}
-		P = MMM(P, P, M);
+		Xbar = MMM(P, R*R, M);
+		Ybar = MMM(P, R*R, M);
+		Zbar = MMM(Ybar, Xbar, M);
+		P = MMM(Zbar, 1, M);
 	}
 	return Z;
 }
@@ -110,7 +98,7 @@ int main(int argc, char* argv[]) {
 		printf("Encryption does not match\n");
 		printf("%i does not equal %i\n", encrypted, decrypted_encrypted);
 		return 0;
-	} 
+	}
 
 	int encrypted_decrypted = MEwithMMM(encrypted, D, (P*Q));
 	if (decrypted != encrypted_decrypted) {
