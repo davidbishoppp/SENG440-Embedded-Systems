@@ -20,13 +20,14 @@ int bitLength(int M) {
 // E: public exponent (exponential)
 // M: PQ (divisor)
 int ME(int X, int E, int M ) {
-	int result = 1;
+	int Z = 1;
 
 	X = X % M;
 
 	while(E > 0) {
-		if(E % 2 == 1) {
-			result = (result * X) % M;
+		// First bit set
+		if(E & 1) {
+			Z = (Z * X) % M;
 		}
 
 		//shift bits by 1 
@@ -34,10 +35,10 @@ int ME(int X, int E, int M ) {
 		X = (X * X) % M;
 	}
 
-	return result;
+	return Z;
 }
 
-int MMM(int X, int Y, int M) {\
+int MMM(int X, int Y, int M) {
 	int T = 0;
 	int Xi;
 	int T0;
