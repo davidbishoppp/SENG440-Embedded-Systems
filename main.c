@@ -38,24 +38,19 @@ int ME(int X, int E, int M ) {
 }
 
 int MMM(int X, int Y, int M) {
+	const int M_const = M;
 	int T = 0;
-	
-	int Xi;
-	int T0;
-	int Y0;
 	int n;
 
-	int checkbit = 1;
+	//printf("i | X(i) | n | T\n"); int i = 0;
+	while(M > 0) {
+		n = (T & 1) ^ ((X & 1) & (Y & 1));
+		T = (T + ((X & 1) * Y) + (n * M_const)) >> 1;
+		//printf("%i | %i | %i | %i\n", i, (X & 1), n, T); i++;
 
-	//printf("i | X(i) | n | T\n");
-	for (int i = 0; i < bitLength(M); i++) {
-		Xi = (X >> i) & 0x1;
-		T0 = (T & 0x1);
-		Y0 = (Y & 0x1);
-
-		n = T0 ^ (Xi & Y0);
-		T = (T + (Xi * Y) + (n * M)) >> 1;
-		//printf("%i | %i | %i | %i\n", i, Xi, n, T);
+		// shift bits by 1
+		X >>= 1;
+		M >>= 1;
 	}
 	if (T >= M) {
 		T = T - M;
@@ -63,30 +58,28 @@ int MMM(int X, int Y, int M) {
 	return T;
 }
 
+/* 
+Adapted from paper and github linked...
+- Lines 106/107 are just setting Z equal to R which is 2^m
+- Line 108 sets P to X*R = X*Z
+*/
 int MEwithMMM(int X, int E, int M ) {
-	int Z = 1;
-	int P = X;
+	int Z = 1 << bitLength(M);
+	int P = X * Z;
 
-	int Xbar;
-	int Ybar;
-	int Zbar;
-
-	int R = 2 << bitLength(M);
-	for (int i = 0; i < (sizeof(M) * __CHAR_BIT__); i++) { //correct
-		//printf("MMM: P = %i, Z = %i\n", P, Z);
-		if  ((E >> i) & 1) {
-			Z = (Z*P) % M;
+	while(E > 0) {
+		// First bit set
+		if(E & 1) {
+			Z = MMM(Z, P, M);
 		}
-		
-		Xbar = MMM(P, R*R, M); //somehwere here
-		Ybar = MMM(P, R*R, M);
-		Zbar = MMM(Ybar, Xbar, M);
-		P = MMM(Zbar, 1, M);
+
+		//shift bits by 1 
+		E >>= 1;
+		X = MMM(X, X, M);
 	}
-	return Z;
+
+	return MMM(Z, 1, M);
 }
-
-
 
 int main(int argc, char* argv[]) {
 	if (argc != 7) {
@@ -106,45 +99,44 @@ int main(int argc, char* argv[]) {
 	int encrypted = atoi(argv[5]); //encrypted plaintext
 	int decrypted = atoi(argv[6]); //decrypted cypher
 
-	
 	printf("--- starting modular exponential method test ---\n");
 	
 	int enrcypt_test_me = ME(decrypted, E, (P*Q));
 	if (encrypted != enrcypt_test_me) {
-		printf("Encryption does not match\n");
-		printf("%i does not equal %i\n", encrypted, enrcypt_test_me);
+		printf("ME encryption does not match.\n");
+		printf("Expected: %i\nActual: %i\n", encrypted, enrcypt_test_me);
 		return 0;
 	} else {
-		printf("Encrypted successfully!\n");
+		printf("ME encrypted successfully!\n");
 	}
 
 	int decrypt_test_me = ME(encrypted, D, (P*Q));
 	if (decrypted != decrypt_test_me) {
-		printf("Decryption does not match\n");
-		printf("%i does not equal %i\n", decrypted, decrypt_test_me);
+		printf("ME decryption does not match.\n");
+		printf("Expected: %i\nActual: %i\n", decrypted, decrypt_test_me);
 		return 0;
 	} else {
-		printf("Decrypted successfully!\n");
+		printf("ME decrypted successfully!\n");
 	}
 
 	printf("\n--- starting montgomery multiplication method test ---\n");
 
 	int enrcypt_test_mm = MEwithMMM(decrypted, E, (P*Q));
 	if (encrypted != enrcypt_test_mm) {
-		printf("Encryption does not match\n");
-		printf("%i does not equal %i\n", encrypted, enrcypt_test_mm);
+		printf("MMM encryption does not match.\n");
+		printf("Expected: %i\nActual: %i\n", encrypted, enrcypt_test_mm);
 		return 0;
 	} else {
-		printf("Encrypted successfully!\n");
+		printf("MMM encrypted successfully!\n");
 	}
 
 	int decrypt_test_mm = MEwithMMM(encrypted, D, (P*Q));
 	if (decrypted != decrypt_test_mm) {
-		printf("Decryption does not match\n");
-		printf("%i does not equal %i\n", decrypted, decrypt_test_mm);
+		printf("MMM decryption does not match\n");
+		printf("Expected: %i\nActual: %i\n", decrypted, decrypt_test_mm);
 		return 0;
 	} else {
-		printf("Decrypted successfully!\n");
+		printf("MMM decrypted successfully!\n");
 	}
 
 	return 1;
