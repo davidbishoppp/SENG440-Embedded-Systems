@@ -38,19 +38,14 @@ int ME(int X, int E, int M ) {
 }
 
 int MMM(int X, int Y, int M) {
-	const int M_const = M;
+	//const int M_const = M;
 	int T = 0;
 	int n;
+	int checkbit = 1;
 
-	//printf("i | X(i) | n | T\n"); int i = 0;
-	while(M > 0) {
-		n = (T & 1) ^ ((X & 1) & (Y & 1));
-		T = (T + ((X & 1) * Y) + (n * M_const)) >> 1;
-		//printf("%i | %i | %i | %i\n", i, (X & 1), n, T); i++;
-
-		// shift bits by 1
-		X >>= 1;
-		M >>= 1;
+	for(int i = 0; i < bitLength(M); i++, checkbit <<= 1) {
+		n = (T & 1) + ((X & checkbit) == checkbit) * (Y & 1);
+		T = ((T + ((X & checkbit) == checkbit) * Y + (n * M))) / 2;
 	}
 	if (T >= M) {
 		T = T - M;
@@ -64,21 +59,36 @@ Adapted from paper and github linked...
 - Line 108 sets P to X*R = X*Z
 */
 int MEwithMMM(int X, int E, int M ) {
-	int Z = 1 << bitLength(M);
-	int P = X * Z;
+	int bits = bitLength(M);
+	int y = (1 << (2 * bits)) % M;
+	int z = MMM(1, y, M);
+	int p = MMM(X, y, M);
 
-	while(E > 0) {
-		// First bit set
-		if(E & 1) {
-			Z = MMM(Z, P, M);
+	for(int i = 0; i < bits; i++) {
+		if(E & (1 << i)) {
+			z = MMM(z, p, M);
 		}
-
-		//shift bits by 1 
-		E >>= 1;
-		X = MMM(X, X, M);
+		p = MMM(p, p, M);
 	}
 
-	return MMM(Z, 1, M);
+	return MMM(1, z, M);
+
+
+	// int Z = 1 << bitLength(M);
+	// int P = X * Z;
+
+	// while(E > 0) {
+	// 	// First bit set
+	// 	if(E & 1) {
+	// 		Z = MMM(Z, P, M);
+	// 	}
+
+	// 	//shift bits by 1 
+	// 	E >>= 1;
+	// 	X = MMM(X, X, M);
+	// }
+
+	// return MMM(Z, 1, M);
 }
 
 int main(int argc, char* argv[]) {
