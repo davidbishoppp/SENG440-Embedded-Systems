@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 
+// TODO: make inline?
 int bitLength(int M) {
 	int count = 0;
 
@@ -15,9 +16,13 @@ int bitLength(int M) {
 	return count;
 }
 
-// X: data (either decrypted or encrypted int) (base)
-// E: public exponent (exponential)
-// M: PQ (divisor)
+/**
+ * Computes UNOPTIMIZED Modular Exponentiation
+ * @param X data (either decrypted or encrypted int) (base)
+ * @param E exponent (exponential)
+ * @param M PQ (divisor)
+ * @return Z = X^E % M
+ */
 int ME(int X, int E, int M ) {
 	int Z = 1;
 
@@ -37,14 +42,12 @@ int ME(int X, int E, int M ) {
 	return Z;
 }
 
-/*
+/**
  * Computes Montgomery Modular Multiplication
- * Input:
- * X - Operand 1
- * Y - Operand 2
- * M - Modulo
- * Output:
- * T = X*Y*R^-1 mod M
+ * @param X Operand 1
+ * @param Y Operand 2
+ * @param M Modulo
+ * @return T = X*Y*(R^-1) mod M
 */
 int MMM(int X, int Y, int M) {
 	const int M_const = M;
@@ -52,6 +55,7 @@ int MMM(int X, int Y, int M) {
 	int n;
 
 	while(M > 0) {
+		// TODO: remove * if possible?
 		n = (T & 1) + ((X & 1) * (Y & 1));
 		T = (T + ((X & 1) * Y) + (n * M_const)) >> 1;
 
@@ -67,18 +71,16 @@ int MMM(int X, int Y, int M) {
 
 /**
  * Computes Modular Exponentiation with MMM
- * Input:
- * X - Base
- * E - Exponent
- * M - Modulo
- * Output:
- * Z = X^E mod M
-*/
+ * @param X Base
+ * @param E Exponent
+ * @param M Modulo
+ * @return Z = X^E mod M
+ */
 int ME_MMM(int X, int E, int M ) {
 	const int M_const = M;
 	int R = 1 << bitLength(M);
-	int z = R % M; // Can we get rid of these modulos?
-	int p = MMM(X, (R*R % M), M); // Can we get rid of these modulos?
+	int z = R % M; // TODO: Can we get rid of these modulos?
+	int p = MMM(X, (R*R % M), M); // TODO: Can we get rid of these modulos?
 
 	while (M > 0) {
 		if(E & 1) {
