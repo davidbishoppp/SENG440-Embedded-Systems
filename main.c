@@ -118,12 +118,7 @@ int main(int argc, char* argv[]) {
 
 	printf("\n--- starting montgomery multiplication method test ---\n");
 
-	clock_t before = clock();
 	int enrcypt_test_mm = ME_MMM(decrypted, E, (P*Q));
-	clock_t difference = clock() - before;
-	int msec =  difference * 1000 / CLOCKS_PER_SEC;
-	printf("msec: %i\n", msec);
-
 	if (encrypted != enrcypt_test_mm) {
 		printf("MMM encryption does not match.\n");
 		printf("Expected: %i\nActual: %i\n", encrypted, enrcypt_test_mm);
