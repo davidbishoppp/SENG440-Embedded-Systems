@@ -73,28 +73,22 @@ int MMM_without_scale(int X, int Y, int M ) {
  * @param M Modulo
  * @return Z = X^E mod M
  */
-int ME_MMM(int X, int E, int M ) {
-	const int M_const = M;
-	int R = 1 << bitLength(M);
-	int z = R % M; // TODO: Can we get rid of these modulos?
-	int p = MMM(X, (R*R % M), M); // TODO: Can we get rid of these modulos?
-	printf("R start: %i\n", R);
-	printf("z start: %i\n", z);
-	printf("p start: %i\n", p);
-	while (M > 0) {
+int ME_MMM(int X, int E, int M) {
+	int Z = 1;
+	int i;
+	printf("Z start: %i\n", Z);
+	printf("X start: %i\n", X);
+	while(E > 0) {
 		if(E & 1) {
-			z = MMM(z, p, M_const);
-			printf("z next: %i\n", z);
+			Z = MMM_without_scale(Z, X, M);
+			printf("Z next: %i\n", Z);
 		}
-		p = MMM(p, p, M_const);
-		printf("p next: %i\n", p);
-
-		M >>= 1;
+		X = MMM_without_scale(X, X, M);
+		printf("X next: %i\n", X);
 		E >>= 1;
 	}
-	int ret = MMM(1, z, M_const);
-	printf("ret: %i\n", ret);
-	return MMM(1, z, M_const);
+	printf("ret: %i\n", Z);
+	return Z;
 }
 
 int main(int argc, char* argv[]) {
@@ -118,12 +112,7 @@ int main(int argc, char* argv[]) {
 
 	printf("\n--- starting montgomery multiplication method test ---\n");
 
-	clock_t before = clock();
 	int enrcypt_test_mm = ME_MMM(decrypted, E, (P*Q));
-	clock_t difference = clock() - before;
-	int msec =  difference * 1000 / CLOCKS_PER_SEC;
-	printf("msec: %i\n", msec);
-
 	if (encrypted != enrcypt_test_mm) {
 		printf("MMM encryption does not match.\n");
 		printf("Expected: %i\nActual: %i\n", encrypted, enrcypt_test_mm);

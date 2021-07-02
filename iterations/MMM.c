@@ -1,3 +1,7 @@
+/**
+ * Basic Modular Exponentiation with Montgomery Modular Multiplication implementation.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,19 +54,10 @@ int MMM(int X, int Y, int M) {
 */
 int MMM_without_scale(int X, int Y, int M ) {
 	int const R = 1 << bitLength(M);
-	int Xbar = MMM(X, (R*R % M), M);
+	int Xbar = MMM(X, (R*R % M), M); //TODO: remove %'s???
 	int Ybar = MMM(Y, (R*R % M), M);
 	int Zbar = MMM(Xbar, Ybar, M);
 	int ret = MMM(Zbar, 1, M);
-
-	//printf("X: %i\n", X);
-	//printf("Y: %i\n", Y);
-	//printf("M: %i\n", M);
-	//printf("R: %i\n", R);
-	//printf("Xbar: %i\n", Xbar);
-	//printf("Ybar: %i\n", Ybar);
-	//printf("Zbar: %i\n", Zbar);
-	//printf("ret: %i\n", ret);
 	return ret;
 }
 
@@ -73,31 +68,21 @@ int MMM_without_scale(int X, int Y, int M ) {
  * @param M Modulo
  * @return Z = X^E mod M
  */
-int ME_MMM(int X, int E, int M ) {
-	const int M_const = M;
-	int R = 1 << bitLength(M);
-	int z = R % M; // TODO: Can we get rid of these modulos?
-	int p = MMM(X, (R*R % M), M); // TODO: Can we get rid of these modulos?
-	printf("R start: %i\n", R);
-	printf("z start: %i\n", z);
-	printf("p start: %i\n", p);
-	while (M > 0) {
+int ME_MMM(int X, int E, int M) {
+	int Z = 1;
+	int i;
+	while(E > 0) {
 		if(E & 1) {
-			z = MMM(z, p, M_const);
-			printf("z next: %i\n", z);
+			Z = MMM_without_scale(Z, X, M);
 		}
-		p = MMM(p, p, M_const);
-		printf("p next: %i\n", p);
+		X = MMM_without_scale(X, X, M);
 
-		M >>= 1;
 		E >>= 1;
 	}
-	int ret = MMM(1, z, M_const);
-	printf("ret: %i\n", ret);
-	return MMM(1, z, M_const);
+	return Z;
 }
 
-int main(int argc, char* argv[]) {
+int main() {
 	int P = 61; //first prime
 	int Q = 53; //second prime
 	int E = 17; //public exponent
@@ -106,24 +91,9 @@ int main(int argc, char* argv[]) {
 	int encrypted = 855; //encrypted plaintext
 	int decrypted = 123; //decrypted cypher
 
-	if (argc == 7) {
-		P = atoi(argv[1]); //first prime
-		Q = atoi(argv[2]); //second prime
-		E = atoi(argv[3]); //public exponent
-		D = atoi(argv[4]); //private exponent
-
-		encrypted = atoi(argv[5]); //encrypted plaintext
-		decrypted = atoi(argv[6]); //decrypted cypher
-	}
-
 	printf("\n--- starting montgomery multiplication method test ---\n");
 
-	clock_t before = clock();
 	int enrcypt_test_mm = ME_MMM(decrypted, E, (P*Q));
-	clock_t difference = clock() - before;
-	int msec =  difference * 1000 / CLOCKS_PER_SEC;
-	printf("msec: %i\n", msec);
-
 	if (encrypted != enrcypt_test_mm) {
 		printf("MMM encryption does not match.\n");
 		printf("Expected: %i\nActual: %i\n", encrypted, enrcypt_test_mm);

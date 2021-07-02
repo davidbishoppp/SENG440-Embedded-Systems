@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+#built
+*
+!iterations
+!*.*
+!./iterations/*.*
+!Makefile
