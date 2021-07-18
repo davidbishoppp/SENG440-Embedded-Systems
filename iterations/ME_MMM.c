@@ -1,8 +1,11 @@
+/**
+ * Basic Modular Exponentiation with Montgomery Modular Multiplication implementation.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// TODO: make inline?
 int bitLength(int M) {
 	int count = 0;
 
@@ -17,8 +20,8 @@ int bitLength(int M) {
 
 /**
  * Computes Montgomery Modular Multiplication
- * @param X Operand 1
- * @param Y Operand 2
+ * @param X Operand 1. 0 <= X < R
+ * @param Y Operand 2. 0 <= Y < R
  * @param M Modulo
  * @return T = X*Y*(R^-1) mod M
 */
@@ -43,27 +46,16 @@ int MMM(int X, int Y, int M) {
 
 /**
  * Computes Montgomery Modular Multiplication without scale factor R^-1
- * @param X Operand 1
- * @param Y Operand 2
+ * @param X Operand 1. 0 <= X < R
+ * @param Y Operand 2. 0 <= Y < R
  * @param M Modulo
  * @return T = X*Y mod M
 */
-int MMM_without_scale(int X, int Y, int M ) {
-	int const R = 1 << bitLength(M);
-	int Xbar = MMM(X, (R*R % M), M);
-	int Ybar = MMM(Y, (R*R % M), M);
-	int Zbar = MMM(Xbar, Ybar, M);
-	int ret = MMM(Zbar, 1, M);
-
-	//printf("X: %i\n", X);
-	//printf("Y: %i\n", Y);
-	//printf("M: %i\n", M);
-	//printf("R: %i\n", R);
-	//printf("Xbar: %i\n", Xbar);
-	//printf("Ybar: %i\n", Ybar);
-	//printf("Zbar: %i\n", Zbar);
-	//printf("ret: %i\n", ret);
-	return ret;
+int MMM_without_scale(int X, int Y, int M, int R, int R2) {
+	int const X_bar = MMM(X, R2, M);
+	int const Y_bar = MMM(Y, R2, M);
+	int const Z_bar = MMM(X_bar, Y_bar, M);
+	return MMM(Z_bar, 1, M);
 }
 
 /**
@@ -74,24 +66,22 @@ int MMM_without_scale(int X, int Y, int M ) {
  * @return Z = X^E mod M
  */
 int ME_MMM(int X, int E, int M) {
-	int Z = 1;
-	int i;
-	printf("Z start: %i\n", Z);
-	printf("X start: %i\n", X);
-	while(E > 0) {
+	int const R = (1 << bitLength(M))%M;
+	int const R2 = (R*R)%M;
+	int z = 1;
+	int p = X;
+	while (E > 0) {
 		if(E & 1) {
-			Z = MMM_without_scale(Z, X, M);
-			printf("Z next: %i\n", Z);
+			z = MMM_without_scale(z, p, M, R, R2);
 		}
-		X = MMM_without_scale(X, X, M);
-		printf("X next: %i\n", X);
+		p = MMM_without_scale(p, p, M, R, R2);
+
 		E >>= 1;
 	}
-	printf("ret: %i\n", Z);
-	return Z;
+	return z;
 }
 
-int main(int argc, char* argv[]) {
+int main() {
 	int P = 61; //first prime
 	int Q = 53; //second prime
 	int E = 17; //public exponent
@@ -99,16 +89,6 @@ int main(int argc, char* argv[]) {
 
 	int encrypted = 855; //encrypted plaintext
 	int decrypted = 123; //decrypted cypher
-
-	if (argc == 7) {
-		P = atoi(argv[1]); //first prime
-		Q = atoi(argv[2]); //second prime
-		E = atoi(argv[3]); //public exponent
-		D = atoi(argv[4]); //private exponent
-
-		encrypted = atoi(argv[5]); //encrypted plaintext
-		decrypted = atoi(argv[6]); //decrypted cypher
-	}
 
 	printf("\n--- starting montgomery multiplication method test ---\n");
 

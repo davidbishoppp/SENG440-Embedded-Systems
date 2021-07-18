@@ -1,140 +1,89 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "RSA.h"
 
-// TODO: make inline?
-int bitLength(int M) {
-	int count = 0;
+#define NUM_TESTS 10
+#define CSV_PATH "./generator/key_value.csv"
 
-	while(M > 0) {
-		count++;
-		//bit shift
-		M >>= 1;
+struct key_value {
+	int p;
+	int q;
+	int e;
+	int d;
+	int message;
+	int encrypted;
+};
+
+struct key_value* loadCSV(char* path) {
+	struct key_value* tests = malloc(sizeof(struct key_value) * NUM_TESTS);
+
+	char line[1024];
+	FILE* stream = fopen(path, "r");
+	int i = 0;
+	fgets(line, 1024, stream); // Skip the header line
+	while (fgets(line, 1024, stream) && i < NUM_TESTS) {
+		struct key_value* test = malloc(sizeof(struct key_value));
+		char* delim = ",";
+		test->p = atoi(strtok(line, delim));
+		test->q = atoi(strtok(NULL, delim));
+		test->e = atoi(strtok(NULL, delim));
+		test->d = atoi(strtok(NULL, delim));
+		test->message = atoi(strtok(NULL, delim));
+		test->encrypted = atoi(strtok(NULL, delim));
+		tests[i] = *test;
+		free(test);
+		i++;
 	}
 
-	return count;
-}
-
-/**
- * Computes Montgomery Modular Multiplication
- * @param X Operand 1
- * @param Y Operand 2
- * @param M Modulo
- * @return T = X*Y*(R^-1) mod M
-*/
-int MMM(int X, int Y, int M) {
-	const int M_const = M;
-	int T = 0;
-	int n;
-
-	while(M > 0) {
-		// TODO: remove * if possible?
-		n = (T & 1) ^ ((X & 1) & (Y & 1));
-		T = (T + ((X & 1) * Y) + (n * M_const)) >> 1;
-
-		M >>= 1;
-		X >>= 1;
-	}
-	if (T >= M_const) {
-		T = T - M_const;
-	}
-	return T;
-}
-
-/**
- * Computes Montgomery Modular Multiplication without scale factor R^-1
- * @param X Operand 1
- * @param Y Operand 2
- * @param M Modulo
- * @return T = X*Y mod M
-*/
-int MMM_without_scale(int X, int Y, int M ) {
-	int const R = 1 << bitLength(M);
-	int Xbar = MMM(X, (R*R % M), M);
-	int Ybar = MMM(Y, (R*R % M), M);
-	int Zbar = MMM(Xbar, Ybar, M);
-	int ret = MMM(Zbar, 1, M);
-
-	//printf("X: %i\n", X);
-	//printf("Y: %i\n", Y);
-	//printf("M: %i\n", M);
-	//printf("R: %i\n", R);
-	//printf("Xbar: %i\n", Xbar);
-	//printf("Ybar: %i\n", Ybar);
-	//printf("Zbar: %i\n", Zbar);
-	//printf("ret: %i\n", ret);
-	return ret;
-}
-
-/**
- * Computes Modular Exponentiation with MMM
- * @param X Base
- * @param E Exponent
- * @param M Modulo
- * @return Z = X^E mod M
- */
-int ME_MMM(int X, int E, int M ) {
-	const int M_const = M;
-	int R = 1 << bitLength(M);
-	int z = R % M; // TODO: Can we get rid of these modulos?
-	int p = MMM(X, (R*R % M), M); // TODO: Can we get rid of these modulos?
-	printf("R start: %i\n", R);
-	printf("z start: %i\n", z);
-	printf("p start: %i\n", p);
-	while (M > 0) {
-		if(E & 1) {
-			z = MMM(z, p, M_const);
-			printf("z next: %i\n", z);
-		}
-		p = MMM(p, p, M_const);
-		printf("p next: %i\n", p);
-
-		M >>= 1;
-		E >>= 1;
-	}
-	int ret = MMM(1, z, M_const);
-	printf("ret: %i\n", ret);
-	return MMM(1, z, M_const);
+	return tests;
 }
 
 int main(int argc, char* argv[]) {
-	int P = 61; //first prime
-	int Q = 53; //second prime
-	int E = 17; //public exponent
-	int D = 2753; //private exponent
+	struct key_value* tests = loadCSV(CSV_PATH);
 
-	int encrypted = 855; //encrypted plaintext
-	int decrypted = 123; //decrypted cypher
+	printf("--- Starting RSA Encryption/Decryption Tests ---\n");
 
-	if (argc == 7) {
-		P = atoi(argv[1]); //first prime
-		Q = atoi(argv[2]); //second prime
-		E = atoi(argv[3]); //public exponent
-		D = atoi(argv[4]); //private exponent
+	int p;
+	int q;
+	int m;
+	int e;
+	int d;
+	int message;
+	int encrypted;
+	for (int i = 0; i < NUM_TESTS; i++) {
+		p = tests[i].p;
+		q = tests[i].q;
+		m = p*q;
+		e = tests[i].e;
+		d = tests[i].d;
+		message = tests[i].message;
+		encrypted = tests[i].encrypted;
+		
+		printf("--- Test %i ---\n", i);
+		printf("p - %i\n", p);
+		printf("q - %i\n", q);
+		printf("m - %i\n", m);
+		printf("e - %i\n", e);
+		printf("d - %i\n", d);
+		printf("message - %i\n", message);
+		printf("encrypted - %i\n", encrypted);
 
-		encrypted = atoi(argv[5]); //encrypted plaintext
-		decrypted = atoi(argv[6]); //decrypted cypher
+		int encrypt_test_mm = ME_MMM(message, e, m);
+		if (encrypted != encrypt_test_mm) {
+			printf("Failed encryption on test %i!\n", i);
+			printf("Expected: %i\nActual: %i\n", encrypted, encrypt_test_mm);
+		} else {
+			printf("MMM encrypted successfully!\n");
+		}
+
+		int decrypt_test_mm = ME_MMM(encrypted, d, m);
+		if (message != decrypt_test_mm) {
+			printf("Failed decryption on test %i!\n", i);
+			printf("Expected: %i\nActual: %i\n", message, decrypt_test_mm);
+		} else {
+			printf("MMM decrypted successfully!\n");
+		}
 	}
-
-	printf("\n--- starting montgomery multiplication method test ---\n");
-
-	int enrcypt_test_mm = ME_MMM(decrypted, E, (P*Q));
-	if (encrypted != enrcypt_test_mm) {
-		printf("MMM encryption does not match.\n");
-		printf("Expected: %i\nActual: %i\n", encrypted, enrcypt_test_mm);
-		return 0;
-	} else {
-		printf("MMM encrypted successfully!\n");
-	}
-
-	int decrypt_test_mm = ME_MMM(encrypted, D, (P*Q));
-	if (decrypted != decrypt_test_mm) {
-		printf("MMM decryption does not match\n");
-		printf("Expected: %i\nActual: %i\n", decrypted, decrypt_test_mm);
-		return 0;
-	} else {
-		printf("MMM decrypted successfully!\n");
-	}
-
 	return 1;
 }
