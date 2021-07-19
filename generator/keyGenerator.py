@@ -77,12 +77,9 @@ while len(pairs) < NUM_KEY_VALUES:
 		continue
 	pairs.append(ret)
 
-with open("key_value.csv", mode='w+') as f:
-	f.write("p,q,e,d,message,encoded\n")
+with open("key_value.txt", mode='w+') as f:
 	for pair in pairs:
 		for i in range(len(pair)):
-			f.write("%i"%pair[i])
-			if i != len(pair)-1:
-				f.write(",")
+			f.write("%i "%pair[i])
 		f.write("\n")
 

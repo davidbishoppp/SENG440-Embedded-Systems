@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "RSA.h"
+#include "ulli.h"
 
 #define NUM_TESTS 10
 #define CSV_PATH "./generator/key_value.csv"
@@ -15,24 +16,24 @@ struct key_value {
 	int encrypted;
 };
 
-struct key_value* loadCSV(char* path) {
-	struct key_value* tests = malloc(sizeof(struct key_value) * NUM_TESTS);
+char*** loadCSV(char* path) {
+	char*** tests = malloc(sizeof(char) * NUM_TESTS * 1024);
 
 	char line[1024];
 	FILE* stream = fopen(path, "r");
-	int i = 0;
+	int i = 0; // Each test.
+	int j = 0; // Each entry in each test.
 	fgets(line, 1024, stream); // Skip the header line
-	while (fgets(line, 1024, stream) && i < NUM_TESTS) {
-		struct key_value* test = malloc(sizeof(struct key_value));
+	while (fgets(line, 1024, stream) || i < NUM_TESTS) {
+		char** test = malloc(sizeof(char) * 1024);
 		char* delim = ",";
-		test->p = atoi(strtok(line, delim));
-		test->q = atoi(strtok(NULL, delim));
-		test->e = atoi(strtok(NULL, delim));
-		test->d = atoi(strtok(NULL, delim));
-		test->message = atoi(strtok(NULL, delim));
-		test->encrypted = atoi(strtok(NULL, delim));
+		test[0] = strtok(line, delim); // p
+		test[1] = strtok(NULL, delim); // q
+		test[2] = strtok(NULL, delim); // e
+		test[3] = strtok(NULL, delim); // d
+		test[4] = strtok(NULL, delim); // message
+		test[5] = strtok(NULL, delim); // encrypted
 		tests[i] = *test;
-		free(test);
 		i++;
 	}
 
@@ -40,20 +41,21 @@ struct key_value* loadCSV(char* path) {
 }
 
 int main(int argc, char* argv[]) {
-	struct key_value* tests = loadCSV(CSV_PATH);
+	char*** tests = loadCSV(CSV_PATH);
 
 	printf("--- Starting RSA Encryption/Decryption Tests ---\n");
 
-	int p;
-	int q;
-	int m;
-	int e;
-	int d;
-	int message;
-	int encrypted;
+	int base = 10;
+	ulli* p;
+	ulli* q;
+	ulli* m;
+	ulli* e;
+	ulli* d;
+	ulli* message;
+	ulli* encrypted;
 	for (int i = 0; i < NUM_TESTS; i++) {
-		p = tests[i].p;
-		q = tests[i].q;
+		p = tests[i];
+		q = tests[i];
 		m = p*q;
 		e = tests[i].e;
 		d = tests[i].d;
