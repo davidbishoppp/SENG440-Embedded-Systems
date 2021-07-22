@@ -1,31 +1,72 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef unsigned int u128; // [0] = high bits. [n] = low bits
-typedef unsigned long long int ulli;
+/**
+ * [0] = lowest bits
+ * [3] = highest bits
+ */
+typedef unsigned int u128;
 
-u128* add(u128* restrict a, u128* restrict b) {
-	u128 result[2];
-	result[1] = a[1] + b[1];
-	if (a[1] > 0 && b[1] > __INT_MAX__ - a[1]) { // Overflow
-		result[0] = a[0] + b[0] + 1;
-	} else {
-		result[0] = a[0] + b[0];
-	}
-	return result;
+/**
+ * result = a + b
+ */
+void add(u128* result, u128* a, u128* b) {
+	__asm__("adds %0, %1, %2;" : "=r" (result[0]) : "r" (a[0]), "r" (b[0]));
+	__asm__("adc %0, %1, %2;" : "=r" (result[1]) : "r" (a[1]), "r" (b[1]));
+	__asm__("adc %0, %1, %2;" : "=r" (result[2]) : "r" (a[2]), "r" (b[2]));
+	__asm__("adc %0, %1, %2;" : "=r" (result[3]) : "r" (a[3]), "r" (b[3]));
 }
 
-int main(void) {
-	// assign u128
-	u128 a[2] = {0, 1};
-	u128 b[2] = {0, 1};
+/**
+ * Bit shift right a 128bit number.
+ */
+void shiftRight(u128* a) {
+	__asm__("lsrs %0, %1 #1;" : "=r" (a[3]) : "r" (a[3]));
+	__asm__("rrx %0, %1;" : "=r" (a[2]) : "r" (a[2]));
+	__asm__("rxx %0, %1;" : "=r" (a[1]) : "r" (a[1]));
+	__asm__("rxx %0, %1;" : "=r" (a[0]) : "r" (a[0]));
+}
 
-	// assign ulli
-	ulli aa = 1LL;
-	ulli bb = 2LL;
+/**
+ * Bit shift left a 128bit number.
+ */
+void shiftLeft(u128* a) {
+	__asm__("lsls %0, %1 #1;" : "=r" (a[0]) : "r" (a[0]));
+	__asm__("rrx %0, %1;" : "=r" (a[2]) : "r" (a[2]));
+	__asm__("rxx %0, %1;" : "=r" (a[1]) : "r" (a[1]));
+	__asm__("rxx %0, %1;" : "=r" (a[0]) : "r" (a[0]));
+}
 
-	// add u128
-	u128* s = add(a, b);
+/**
+ * Subtract two 128bit numbers through u128.
+ * TODO: Convert to Assembly? ADC operation may be useful.
+ * https://www.prodevelopertutorial.com/add-and-subtract-2-numbers-using-bitwise-operators-c-solution/
+ * 
+ * @param x Operand 1
+ * @param y Operand 2
+ */
+void subtract(u128* x, u128* y, u128* z) {
+	
+}
 
-	// add ulli
-	ulli ss = aa + bb;
+/**
+ * Bit length of a 128but number through u128.
+ * 
+ * @param x Operand
+ */
+int bitLength(u128* x) {
+	int count;
+	u128 tmp;
+	if (x[0] != 0) {
+		tmp = x[0];
+		count = 64;
+	} else {
+		tmp = x[1];
+		count = 0;
+	}
+	while(tmp != 0) {
+			count++;
+			tmp >>= 1;
+		}
+	return count;
 }
