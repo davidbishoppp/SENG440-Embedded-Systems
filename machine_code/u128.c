@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 /**
  * [0] = lowest bits
@@ -21,20 +22,30 @@ void add(u128* result, u128* a, u128* b) {
  * Bit shift right a 128bit number.
  */
 void shiftRight(u128* a) {
-	__asm__("lsrs %0, %1 #1;" : "=r" (a[3]) : "r" (a[3]));
+	__asm__("lsrs %0, %1, #1;" : "=r" (a[3]) : "r" (a[3]));
 	__asm__("rrx %0, %1;" : "=r" (a[2]) : "r" (a[2]));
-	__asm__("rxx %0, %1;" : "=r" (a[1]) : "r" (a[1]));
-	__asm__("rxx %0, %1;" : "=r" (a[0]) : "r" (a[0]));
+	__asm__("rrx %0, %1;" : "=r" (a[1]) : "r" (a[1]));
+	__asm__("rrx %0, %1;" : "=r" (a[0]) : "r" (a[0]));
 }
 
 /**
  * Bit shift left a 128bit number.
  */
 void shiftLeft(u128* a) {
-	__asm__("lsls %0, %1 #1;" : "=r" (a[0]) : "r" (a[0]));
-	__asm__("rrx %0, %1;" : "=r" (a[2]) : "r" (a[2]));
-	__asm__("rxx %0, %1;" : "=r" (a[1]) : "r" (a[1]));
-	__asm__("rxx %0, %1;" : "=r" (a[0]) : "r" (a[0]));
+	// Shift lowest bits.
+	__asm__("lsls %0, %1, #1;" : "=r" (a[0]) : "r" (a[0]));
+
+	// Shift next set of bits. Add 1 if carry flag set.
+	__asm__("lsls %0, %1, #1;" : "=r" (a[1]) : "r" (a[1]));
+	__asm__("addcs %0, %1, #1;" : "=r" (a[1]) : "r" (a[1]));
+	
+	// Shift next set of bits. Add 1 if carry flag set.
+	__asm__("lsls %0, %1, #1;" : "=r" (a[2]) : "r" (a[2]));
+	__asm__("addcs %0, %1, #1;" : "=r" (a[2]) : "r" (a[2]));
+
+	// Shift hgihest bits. Add 1 if carry flag set.
+	__asm__("lsls %0, %1, #1;" : "=r" (a[3]) : "r" (a[3]));
+	__asm__("addcs %0, %1, #1;" : "=r" (a[3]) : "r" (a[3]));
 }
 
 /**
@@ -69,4 +80,20 @@ int bitLength(u128* x) {
 			tmp >>= 1;
 		}
 	return count;
+}
+
+int main(void) {
+	u128 a[4] = {1, INT_MAX};
+	u128 b[4] = {1, INT_MAX};
+	u128 c[4] = {1, INT_MAX};
+
+	u128 s[4];
+	add(s, a, b);
+	shiftRight(b);
+	shiftLeft(c);
+
+	printf("s: %u %u %u %u\n", s[0], s[1], s[2], s[3]);
+	printf("b: %u %u %u %u\n", b[0], b[1], b[2], b[3]);
+	printf("c: %u %u %u %u\n", c[0], c[1], c[2], c[3]);
+	return 1; 
 }
