@@ -6,6 +6,12 @@
  */
 typedef unsigned long long int ulli; // 64bits (2 registers)
 
+typedef unsigned int u128;
+
+u128 addU128(register u128* x, register u128* y) {
+	return 1;
+}
+
 /**
  * Bit shift right a 128bit number through ulli.
  * 
@@ -104,10 +110,17 @@ int bitLength(ulli* x) {
  * 
  * @param c Char array.
  */
-ulli* ulliFromCharArray(char* c) {
-	ulli* temp = malloc(sizeof(ulli)*2);
-	temp[0] = 0LL;
-	temp[0] = 0LL;
+ulli* atoulli(char* string) {
+	ulli* result = malloc(sizeof(ulli)*2);
+	result[0] = 0LL;
+	result[0] = 0LL;
+
+	int i;
+	for (i = sizeof(string) - 1; i != 0; i--) {
+		if ()
+	}
+	int i;
+
 	temp[0] |= (b > 64) ? (1 << (b-64)) : (1 << b);
 	return temp;
 }

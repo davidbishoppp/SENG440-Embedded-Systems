@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ulli.h"
+#include <arm_neon.h>
 
 /**
  * Computes R from bitlength

@@ -58,5 +58,6 @@ dkms.conf
 !./iterations/*.*
 !Makefile
 !generator
+!machine_code
 
 *.out
