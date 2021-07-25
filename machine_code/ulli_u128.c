@@ -15,8 +15,8 @@ int main(void) {
 	u128 a[4] = {0, 1};
 	u128 b[4] = {0, 1};
 
-	ulli aa[2] = {1LL, 0LL};
-	ulli bb[2] = {0LL, 1LL};
+	ulli aa[2] = {1LLU, 0LLU};
+	ulli bb[2] = {0LLU, 1LLU};
 
 	u128 s[4];
 	add(s, a, b);
