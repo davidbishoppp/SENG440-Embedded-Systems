@@ -1,3 +1,7 @@
+/**
+ * RSA encryption and decryption with unsigned integers only.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
