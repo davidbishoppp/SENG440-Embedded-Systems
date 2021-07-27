@@ -8,16 +8,49 @@
 #define HIGH 0
 #define LOW 1-HIGH // 0 or 1
 
+#define PRINT_IN_HEX 0
+
 /**
  * ulli arrays: x[HIGH] = high bits, x[LOW] = low bits 
  */
 typedef unsigned long long int ulli; // 64bits (2 registers)
 
 /**
+ * Make a new ulli from n.
+ */
+ulli* newUlli(int n) {
+	ulli* temp = malloc(sizeof(ulli) * LENGTH);
+	temp[LOW] = (ulli) n;
+	temp[HIGH] = 0LLU;
+	return temp;
+}
+
+/**
+ * Copy a ulli from a.
+ */
+ulli* copyUlli(ulli* a) {
+	ulli* temp = malloc(sizeof(ulli) * LENGTH);
+	temp[LOW] = a[LOW];
+	temp[HIGH] = a[HIGH];
+	return temp;
+}
+
+/**
  * Print ulli.
  */
 void printUlli(ulli* a, char* name) {
-	fprintf(stderr, "%s: %llu %llu\n", name, a[HIGH], a[LOW]);
+	if (PRINT_IN_HEX) {
+		fprintf(stderr, "%s: 0x%llx 0x%llx\n", name, a[HIGH], a[LOW]);
+	} else {
+		fprintf(stderr, "%s: %llu %llu\n", name, a[HIGH], a[LOW]);
+	}
+}
+
+/**
+ * Asses if the ulli is 0.
+ */
+static inline int zero(ulli* a) {
+	return (a[HIGH] == 0LLU && a[LOW] == 0LLU);
 }
 
 /**
@@ -73,17 +106,16 @@ void add(ulli* result, ulli* x, ulli* y) {
  * @param y Operand 2
  */
 void subtract(ulli* result, ulli* x, ulli* y) {
-	ulli x_local[LENGTH];
-	x_local[LOW] = x[LOW];
-	x_local[HIGH] = x[HIGH];
+	ulli* x_local = copyUlli(x);
 
-	ulli y_local[LENGTH];
-	y_local[LOW] = y[LOW];
-	y_local[HIGH] = y[HIGH];
+	ulli* y_local = copyUlli(y);
 
 	result[LOW] = x_local[LOW] - y_local[LOW];
 
 	result[HIGH] = x_local[HIGH] - y_local[HIGH] - (result[LOW] > x_local[LOW]); // Carry
+	
+	free(x_local);
+	free(y_local);
 }
 
 /**
@@ -137,12 +169,15 @@ int greaterThan(ulli* a, ulli* b) {
  * Copy char array of 16 bytes into ulli.
  */
 void copyStr(ulli* result, char* str) {
+	int length = strlen(str);
 	int i;
-	for (i = 0; i < strlen(str); i++) {
-		if (i >= 8) {
-			result[LOW] |= ((ulli) str[i]) << (64 - ((i - 7)*8));
-		} else {
-			result[HIGH] |= ((ulli) str[i]) << (64 - ((i + 1)*8));
+	int j;
+	for (i = 0; i < length; i++) {
+		result[LOW] |= str[i];
+		if (i != length -1) {
+			for (j = 0; j < 8; j++) {
+				shiftLeft(result);
+			}
 		}
 	}
 }
@@ -206,8 +241,8 @@ void mod(ulli* result, ulli* x, ulli* m) {
 // 	printf("equal: %i.\n", eq);
 
 // 	ulli temp[2] = {1LLU, 2LLU};
-// 	int noteq = equal(d, temp);
-// 	printf("not equal: %i.\n", eq);
+// 	int not_equal = equal(d, temp);
+// 	printf("not equal: %i.\n", not_equal);
 
 // 	int gt = greaterThan(d, e);
 // 	printf("greater than: %i.\n", gt);

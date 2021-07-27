@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "RSA.h"
 
 #define MESSAGE_PATH "./message.txt"
@@ -17,24 +18,35 @@ int main(int argc, char* argv[]) {
 
 	ulli message[LENGTH];
 
-	char line[LENGTH_BYTES];
+	unsigned int length = floor(bitLength(M)/8) + 1;
+	char line[length];
 	FILE* stream = fopen(MESSAGE_PATH, "r");
-	while (fgets(line, LENGTH_BYTES, stream)) {
-		printf("%s\n", line);
-		copyStr(message, line);
-		ulli encrypted[2] = {0LLU, 0LLU};
-		ME_MMM(message, E, M, encrypted);
+	while (fgets(line, length, stream)) {
+		fprintf(stderr, "Line: %s\n", line);
 
-		ulli decrypted[2] = {0LLU, 0LLU};
-		ME_MMM(encrypted, D, M, decrypted);
-		if (!equal(message, decrypted)) {
-			printUlli(message, "Message");
-			printUlli(encrypted, "Encrypted");
-			printUlli(decrypted, "Decrypted");
+		message[LOW] = 0LLU;
+		message[HIGH] = 0LLU;
+		copyStr(message, line);
+
+		ulli* encrypted = ME_MMM(message, E, M);
+
+		ulli* decrypted = ME_MMM(encrypted, D, M);
+
+		printUlli(message, "Message");
+		printUlli(encrypted, "Encrypted");
+		printUlli(decrypted, "Decrypted");
+
+		if (!equal(message, decrypted) || zero(message) || zero(encrypted) || zero(decrypted)) {
+			printf("MMM DID NOT encrypt successfully!\n");
+			free(encrypted);
+			free(decrypted);
 			return 1;
 		} else {
 			printf("MMM decrypted successfully!\n");
 		}
+		free(encrypted);
+		free(decrypted);
 	}
+
 	return 1;
 }
