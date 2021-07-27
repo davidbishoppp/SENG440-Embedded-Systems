@@ -8,6 +8,14 @@
 #include <stdlib.h>
 #include "ulli_pipelined.h"
 
+#define X_SET(A) (A & 2)
+#define Y_SET(A) (A & 4)
+#define Z_SET(A) (A & 1)
+
+#define SET_X(X) ((X & 1) << 1)
+#define SET_Y(Y) ((Y & 1) << 2)
+#define SET_Z(Z) (Z & 1)
+
 /**
  * Computes R from bitlength
  * 
@@ -35,11 +43,14 @@ ulli* newR(int b) {
 ulli* MMM(ulli* X, ulli* Y, ulli* M) {
 	ulli* Z = newUlli(0);
 	ulli* X_local = copyUlli(X);
-	int n;
-	int i;
 	const int length = bitLength(M);
+	register int xyz_set = 0;
+	xyz_set |= SET_X(X[LOW]);
+	xyz_set |= SET_Y(Y[LOW]);
+	xyz_set |= SET_Z(Z[LOW]);
+	int n = (Z_SET(xyz_set)) ^ (X_SET(xyz_set) & (Y[LOW] & 1));
+	int i;
 	for (i = 0; i < length; i++) {
-		n = (Z[LOW] & 1) ^ ((X_local[LOW] & 1) & (Y[LOW] & 1));
 		if (n) {
 			add(Z, M, Z);
 		}
@@ -48,6 +59,7 @@ ulli* MMM(ulli* X, ulli* Y, ulli* M) {
 		}
 		shiftRight(X_local);
 		shiftRight(Z);
+		n = (Z[LOW] & 1) ^ ((X_local[LOW] & 1) & (Y[LOW] & 1));
 	}
 	// If T >= M
 	if (greaterThan(Z, M)) {
