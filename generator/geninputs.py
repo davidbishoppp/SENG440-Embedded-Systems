@@ -3,7 +3,7 @@ import random
 import math
 
 # how many inputs to create
-NUM_INPUTS = 50000
+NUM_INPUTS = 20000
 
 with open("./inputs.txt", "w") as file:
     for x in range(NUM_INPUTS):

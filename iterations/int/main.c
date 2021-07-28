@@ -30,17 +30,13 @@ int main(int argc, char* argv[]) {
 	//int P[2] = {0LLU, 61LLU};
 	//int Q[2] = {0LLU, 53LLU};
 	ulli M = 943997864817796661;
-
+	ulli R2 = 58372345598942367;
 	ulli E = 535447308525948791;
 	ulli D = 809798858682407111;
 
 	ulli message;
 
-<<<<<<< HEAD
-	ulli length = 1 + 1;
-=======
 	//unsigned int length = floor(bitLength(M)/8) + 1;
->>>>>>> 84c705e4773e678fdb3194741d4f4a995b1f2fea
 
 	// clock for timing
 	clock_t encrypt_start, encrypt_end, decrypt_start, decrypt_end, loop_start, loop_end;
@@ -55,30 +51,20 @@ int main(int argc, char* argv[]) {
 		decrypt_end = 0;
 
 		if (fgets(line, 6, stream) == NULL) break;
-		//printf("line: %s\n", line);
+		printf("line: %s", line);
 
 		int temp = 0;
 		temp = atoi(line);
 		message = 0;
-		message = (unsigned int)temp;
+		message = (unsigned int)temp; 
 
-
-<<<<<<< HEAD
-		ulli encrypted = ME_MMM(message, E, M);
-		printf("end of encrypt\n");
-		ulli decrypted = ME_MMM(encrypted, D, M);
-
-		printf("Message: %llu\n", message);
-		printf("Encrypted: %llu\n", encrypted);
-		printf("Decrypted: %llu\n", decrypted);
-=======
 		//copyStr(&message, (unsigned int)line);
 		encrypt_start = clock();
-		unsigned int encrypted = ME_MMM(message, E, M);
+		unsigned int encrypted = ME_MMM(message, E, M, R2);
 		encrypt_end = clock();
 
 		decrypt_start = clock();
-		unsigned int decrypted = ME_MMM(encrypted, D, M);
+		unsigned int decrypted = ME_MMM(encrypted, D, M, R2);
 		decrypt_end = clock();
 
 		double encrypt_time = (double)(encrypt_end - encrypt_start) / CLOCKS_PER_SEC;
@@ -86,10 +72,9 @@ int main(int argc, char* argv[]) {
 		printf("encrypt time: %.7f\n", encrypt_time);
 		printf("decrypt time: %.7f\n", decrypt_time);
 
-		//printf("Message: %u\n", message);
-		//printf("Encrypted: %u\n", encrypted);
-		//printf("Decrypted: %u\n", decrypted);
->>>>>>> 84c705e4773e678fdb3194741d4f4a995b1f2fea
+		//printf("Message: %llu\n", message);
+		printf("Encrypted: %u\n", encrypted);
+		printf("Decrypted: %u\n", decrypted);
 
 		if (message != decrypted || !message || !encrypted || !decrypted) {
 			printf("[ERROR] : MMM did not decrypt successfully!\n");

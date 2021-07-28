@@ -53,8 +53,8 @@ ulli MMM(ulli X, ulli Y, ulli M) {
  * @param M Modulo
  * @return T = X*Y mod M
 */
-ulli MMM_without_scale(ulli X, ulli Y, ulli M) {
-	ulli const R2 = (1 << (bitLength(M) << 1))%M;
+ulli MMM_without_scale(ulli X, ulli Y, ulli M, ulli R2) {
+	//ulli const R2 = (1 << (bitLength(M) << 1))%M;
 	ulli const X_bar = MMM(X, R2, M);
 	ulli const Y_bar = MMM(Y, R2, M);
 	ulli const Z_bar = MMM(X_bar, Y_bar, M);
@@ -69,13 +69,13 @@ ulli MMM_without_scale(ulli X, ulli Y, ulli M) {
  * @param M Modulo
  * @return Z = X^E mod M
  */
-ulli ME_MMM(ulli X, ulli E, ulli M) {
+ulli ME_MMM(ulli X, ulli E, ulli M, ulli R2) {
 	ulli Z = 1;
 	while (E != 0) {
 		if(E & 1) {
-			Z = MMM_without_scale(X, Z, M);
+			Z = MMM_without_scale(X, Z, M, R2);
 		}
-		X = MMM_without_scale(X, X, M);
+		X = MMM_without_scale(X, X, M, R2);
 		E >>= 1;
 	}
 	return Z;
