@@ -90,7 +90,7 @@ void shiftLeft(ulli* x) {
  */
 void add(ulli* result, ulli* x, ulli* y) {
 	int carry = 0;
-	if (((x[LOW] > 1) && (y[LOW] > __UINT64_MAX__ - x[LOW]))) { // Will wrap.
+	if (((x[LOW] >= 1) && (y[LOW] > __UINT64_MAX__ - x[LOW]))) { // Will wrap.
 		carry = 1;
 	}
 
@@ -179,39 +179,6 @@ void copyStr(ulli* result, char* str) {
 				shiftLeft(result);
 			}
 		}
-	}
-}
-
-/**
- * Modulo operation.
- */
-void mod(ulli* result, ulli* x, ulli* m) {
-	if (greaterThan(m, x)) {
-		result[LOW] = x[LOW];
-		result[HIGH] = x[HIGH];
-		return;
-	} else if (equal(x, m)) {
-		result[LOW] = 0LLU;
-		result[HIGH] = 0LLU;
-	}
-
-	result[LOW] = x[LOW];
-	result[HIGH] = x[HIGH];
-
-	ulli m_local[2];
-	ulli m_prev[2];
-	while (greaterThan(result, m)) {
-		m_local[LOW] = m[LOW];
-		m_local[HIGH] = m[HIGH];
-
-		do  {
-			m_prev[LOW] = m_local[LOW];
-			m_prev[HIGH] = m_local[HIGH];
-
-			shiftLeft(m_local);
-		} while (greaterThan(result, m_local) && greaterThan(m_local, m_prev));
-
-		subtract(result, result, m_prev);
 	}
 }
 

@@ -1,5 +1,5 @@
 /**
- * RSA encryption and decryption with unsigned integers only.
+ * RSA encryption and decryption with ulliegers only.
  */
 
 #include <stdio.h>
@@ -11,7 +11,7 @@
 #define MESSAGE_PATH "../../message.txt"
 #define LENGTH_BYTES 5
 
-void copyStr(unsigned int *result, char* str) {
+void copyStr(ulli *result, char* str) {
 	int length = strlen(str);
 	int i;
 	for (i = 0; i < strlen(str); i++) {
@@ -28,14 +28,14 @@ int main(int argc, char* argv[]) {
 	// Example values from slides.
 	//int P[2] = {0LLU, 61LLU};
 	//int Q[2] = {0LLU, 53LLU};
-	unsigned int M = 3233;
+	ulli M = 943997864817796661;
 
-	unsigned int E = 17;
-	unsigned int D = 2753;
+	ulli E = 535447308525948791;
+	ulli D = 809798858682407111;
 
-	unsigned int message;
+	ulli message;
 
-	unsigned int length = floor(bitLength(M)/8) + 1;
+	ulli length = 1 + 1;
 
 	char line[length];
 	FILE* stream = fopen(MESSAGE_PATH, "r");
@@ -45,13 +45,13 @@ int main(int argc, char* argv[]) {
 		message = 0;
 		copyStr(&message, line);
 
-		unsigned int encrypted = ME_MMM(message, E, M);
+		ulli encrypted = ME_MMM(message, E, M);
+		printf("end of encrypt\n");
+		ulli decrypted = ME_MMM(encrypted, D, M);
 
-		unsigned int decrypted = ME_MMM(encrypted, D, M);
-
-		printf("Message: %u\n", message);
-		printf("Encrypted: %u\n", encrypted);
-		printf("Decrypted: %u\n", decrypted);
+		printf("Message: %llu\n", message);
+		printf("Encrypted: %llu\n", encrypted);
+		printf("Decrypted: %llu\n", decrypted);
 
 		if (message != decrypted || !message || !encrypted || !decrypted) {
 			printf("MMM DID NOT decrypt successfully!\n");

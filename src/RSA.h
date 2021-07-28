@@ -58,18 +58,14 @@ ulli* MMM(ulli* X, ulli* Y, ulli* M) {
  * @param M Modulo
  * @return T = X*Y mod M
 */
-ulli* MMM_without_scale(ulli* X, ulli* Y, ulli* M) {
+ulli* MMM_without_scale(ulli* X, ulli* Y, ulli* M, ulli* R2) {
 	ulli* one = newUlli(1);
-	ulli* R2 = newR((bitLength(M) << 1)); // R^2 = 2^2b
-	mod(R2, R2, M);
-	
 	ulli* X_bar = MMM(X, R2, M);
 	ulli* Y_bar = MMM(Y, R2, M);
 	ulli* Z_bar = MMM(X_bar, Y_bar, M);
 	ulli* temp = MMM(Z_bar, one, M);
 	
 	free(one);
-	free(R2);
 	free(X_bar);
 	free(Y_bar);
 	free(Z_bar);
@@ -84,14 +80,14 @@ ulli* MMM_without_scale(ulli* X, ulli* Y, ulli* M) {
  * @param M Modulo
  * @param Z = X^E mod M
  */
-ulli* ME_MMM(ulli* X, ulli* E, ulli* M) {
+ulli* ME_MMM(ulli* X, ulli* E, ulli* M, ulli* R2) {
 	ulli* Z = newUlli(1);
 	ulli* E_local = copyUlli(E);
 	while (E_local[LOW] != 0LLU || E_local[HIGH] != 0LLU) {
 		if(E_local[LOW] & 1LLU) {
-			Z = MMM_without_scale(X, Z, M);
+			Z = MMM_without_scale(X, Z, M, R2);
 		}
-		X = MMM_without_scale(X, X, M);
+		X = MMM_without_scale(X, X, M, R2);
 		shiftRight(E_local);
 	}
 	free(E_local);
@@ -102,10 +98,10 @@ ulli* ME_MMM(ulli* X, ulli* E, ulli* M) {
 // 	// Example values from slides.
 // 	//ulli P[2] = {0LLU, 61LLU};
 // 	//ulli Q[2] = {0LLU, 53LLU};
-// 	ulli M[2] = {0LLU, 3233LLU};
+// 	ulli M[2] = {0LLU, 0xD1CDBEDF21979C1}; // 944871836856449473 = 0xD1CDBEDF21979C1
 
-// 	ulli E[2] = {0LLU, 17LLU};
-// 	ulli D[2] = {0LLU, 2753LLU};
+// 	ulli E[2] = {0LLU, 0x402896F3942E14B}; // 288944436900192587 = 0x402896F3942E14B
+// 	ulli D[2] = {0LLU, 0xCEE375AFDE45633}; // 931743036858455603 = 0xCEE375AFDE45633
 
 // 	ulli message[2] = {0LLU, 123LLU};
 
