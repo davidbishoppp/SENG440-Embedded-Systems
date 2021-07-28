@@ -1,3 +1,7 @@
+/**
+ * Ulli operations with loop unrolling optimizations.
+ */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -47,7 +51,7 @@ void printUlli(ulli* a, char* name) {
 }
 
 /**
- * Asess if the ulli is 0.
+ * Asses if the ulli is 0.
  */
 static inline int zero(ulli* a) {
 	return (a[HIGH] == 0LLU && a[LOW] == 0LLU);

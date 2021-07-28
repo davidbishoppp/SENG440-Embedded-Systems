@@ -6,7 +6,7 @@ import pandas as pd
 import random
 import math
 
-NUM_KEY_VALUES = 100
+NUM_KEY_VALUES = 1
 if len(sys.argv) > 1:
 	NUM_KEY_VALUES = int(sys.argv[1])
 
@@ -25,26 +25,27 @@ def getPrime():
 def factorize(n):
 	factors = []
 	T = n
-
 	i = 2
 	while (T>1) and (i < (math.sqrt(n)+1)):
 		while T%i==0:
 			T = T/i
 			factors.append(i)
 		i += 1
+		print(i)
+		
 	if T>1:
 		factors.append(T)
 
 	return factors
 
 def generatePairs():
-	p = getPrime()
-	q = getPrime()
+	p = 961748941	#getPrime()
+	q = 982451653 #getPrime()
 	n = p*q
 	r = (p-1)*(q-1)
 
 	candidates = []
-	for i in range(1, 20):
+	for i in range(4, 5):
 		candidates.append((r*i)+1)
 
 	e = 0
