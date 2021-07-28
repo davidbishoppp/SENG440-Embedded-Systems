@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
 		message[LOW] = 0LLU;
 		message[HIGH] = 0LLU;
 		copyStr(message, line);
-
 		ulli* encrypted = ME_MMM(message, E, M);
 
 		ulli* decrypted = ME_MMM(encrypted, D, M);

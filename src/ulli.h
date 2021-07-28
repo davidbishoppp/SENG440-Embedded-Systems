@@ -47,7 +47,7 @@ void printUlli(ulli* a, char* name) {
 }
 
 /**
- * Asses if the ulli is 0.
+ * Asess if the ulli is 0.
  */
 static inline int zero(ulli* a) {
 	return (a[HIGH] == 0LLU && a[LOW] == 0LLU);
