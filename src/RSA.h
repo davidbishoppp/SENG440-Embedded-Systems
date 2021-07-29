@@ -15,22 +15,6 @@ ulli D[2] = {0LLU, 809798858682407111}; // 931743036858455603 = 0xCEE375AFDE4563
 // ulli E[2] = {0LLU, 17LLU}; // 288944436900192587 = 0x402896F3942E14B
 // ulli D[2] = {0LLU, 2753LLU}; // 931743036858455603 = 0xCEE375AFDE45633
 
-/**
- * Computes R from bitlength
- * 
- * @param b Bit length
- */
-ulli* newR(int b) {
-	ulli* result = newUlli(0);
-	if (b == 0 || b > 128) {
-		return result;
-	} else if (b > 64) {
-		result[HIGH] |= (1 << (b-64));
-	} else {
-		result[LOW] |= (1 << b);
-	}
-	return result;
-}
 
 /**
  * Computes Montgomery Modular Multiplication
