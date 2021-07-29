@@ -9,7 +9,7 @@
 #define LENGTH_BYTES 16
 
 int main(int argc, char* argv[]) {
-	// Example values from slides.
+	// Example values from slides
 	//ulli P[2] = {0LLU, 61LLU};
 	//ulli Q[2] = {0LLU, 53LLU};
 	ulli M[2] = {0LLU, 943997864817796661}; // 944871836856449473 = 0xD1CDBEDF21979C1
