@@ -16,8 +16,8 @@ with open ("./results.csv", newline='') as file:
 
     for row in reader:
         count += 1
-        e = float(row['en'])
-        d = float(row['de'])
+        e = float(row['encrypt'])
+        d = float(row['decrypt'])
 
         encrypt_total += e
         decrypt_total += d
@@ -39,4 +39,4 @@ with open ("./results.csv", newline='') as file:
     print("min encrypt: ", encrypt_min)
     print("max encrypt: ", encrypt_max)
     print("min decrypt: ", decrypt_min)
-    print("min decrypt: ", decrypt_max)
+    print("max decrypt: ", decrypt_max)
