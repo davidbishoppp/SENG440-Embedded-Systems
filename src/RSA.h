@@ -2,6 +2,19 @@
 #include <stdlib.h>
 #include "ulli.h"
 
+ulli M[2] = {0LLU, 943997864817796661}; // 944871836856449473 = 0xD1CDBEDF21979C1
+ulli R2[2] = {0LLU, 58372345598942367}; //(1<<12) << 1 = 16777216 mod 3233 = 1179
+ulli E[2] = {0LLU, 535447308525948791}; // 288944436900192587 = 0x402896F3942E14B
+ulli D[2] = {0LLU, 809798858682407111}; // 931743036858455603 = 0xCEE375AFDE45633
+
+// Example values from slides
+//ulli P[2] = {0LLU, 61LLU};
+//ulli Q[2] = {0LLU, 53LLU};
+// ulli M[2] = {0LLU, 3233LLU}; // 944871836856449473 = 0xD1CDBEDF21979C1
+// ulli R2[2] = {0LLU, 1179LLU}; // (1<<12) << 1 = 16777216 mod 3233 = 1179
+// ulli E[2] = {0LLU, 17LLU}; // 288944436900192587 = 0x402896F3942E14B
+// ulli D[2] = {0LLU, 2753LLU}; // 931743036858455603 = 0xCEE375AFDE45633
+
 /**
  * Computes R from bitlength
  * 
@@ -23,19 +36,19 @@ ulli* newR(int b) {
  * Computes Montgomery Modular Multiplication
  * @param X Operand 1
  * @param Y Operand 2
- * @param M Modulo
- * @param Z = X*Y*R^-1 % M
+ * @return = X*Y*R^-1 % M
 */
-ulli* MMM(ulli* X, ulli* Y, ulli* M) {
+ulli* MMM(ulli* X, ulli* Y) {
 	ulli* Z = newUlli(0);
 	ulli* X_local = copyUlli(X);
+	ulli* M_local = copyUlli(M);
 	int n;
 	int i;
-	const int length = bitLength(M);
+	const int length = bitLength(M_local);
 	for (i = 0; i < length; i++) {
 		n = (Z[LOW] & 1) ^ ((X_local[LOW] & 1) & (Y[LOW] & 1));
 		if (n) {
-			add(Z, M, Z);
+			add(Z, M_local, Z);
 		}
 		if (X_local[LOW] & 1) {
 			add(Z, Y, Z);
@@ -44,10 +57,11 @@ ulli* MMM(ulli* X, ulli* Y, ulli* M) {
 		shiftRight(Z);
 	}
 	// If T >= M
-	if (greaterThan(Z, M)) {
-		subtract(Z, Z, M);
+	if (greaterThan(Z, M_local)) {
+		subtract(Z, Z, M_local);
 	}
 	free(X_local);
+	free(M_local);
 	return Z;
 }
 
@@ -55,17 +69,18 @@ ulli* MMM(ulli* X, ulli* Y, ulli* M) {
  * Computes Montgomery Modular Multiplication without scale factor R^-1
  * @param X Operand 1
  * @param Y Operand 2
- * @param M Modulo
- * @return T = X*Y mod M
+ * @return = X*Y mod M
 */
-ulli* MMM_without_scale(ulli* X, ulli* Y, ulli* M, ulli* R2) {
+ulli* MMM_without_scale(ulli* X, ulli* Y) {
 	ulli* one = newUlli(1);
-	ulli* X_bar = MMM(X, R2, M);
-	ulli* Y_bar = MMM(Y, R2, M);
-	ulli* Z_bar = MMM(X_bar, Y_bar, M);
-	ulli* temp = MMM(Z_bar, one, M);
+	ulli* R2_local = copyUlli(R2);
+	ulli* X_bar = MMM(X, R2_local);
+	ulli* Y_bar = MMM(Y, R2_local);
+	ulli* Z_bar = MMM(X_bar, Y_bar);
+	ulli* temp = MMM(Z_bar, one);
 	
 	free(one);
+	free(R2_local);
 	free(X_bar);
 	free(Y_bar);
 	free(Z_bar);
@@ -75,23 +90,40 @@ ulli* MMM_without_scale(ulli* X, ulli* Y, ulli* M, ulli* R2) {
 
 /**
  * Computes Modular Exponentiation with MMM
- * @param X Base
- * @param E Exponent
- * @param M Modulo
- * @param Z = X^E mod M
+ * @param B Base
+ * @param Exp Exponent
+ * @return = B^E mod M
  */
-ulli* ME_MMM(ulli* X, ulli* E, ulli* M, ulli* R2) {
+ulli* ME_MMM(ulli* B, ulli* Exp) {
 	ulli* Z = newUlli(1);
-	ulli* E_local = copyUlli(E);
-	while (E_local[LOW] != 0LLU || E_local[HIGH] != 0LLU) {
-		if(E_local[LOW] & 1LLU) {
-			Z = MMM_without_scale(X, Z, M, R2);
+	while (Exp[LOW] != 0LLU || Exp[HIGH] != 0LLU) {
+		if(Exp[LOW] & 1LLU) {
+			Z = MMM_without_scale(B, Z);
 		}
-		X = MMM_without_scale(X, X, M, R2);
-		shiftRight(E_local);
+		B = MMM_without_scale(B, B);
+		shiftRight(Exp);
 	}
-	free(E_local);
 	return Z;
+}
+
+/**
+ * Cumputes the encryption of the message with ME_MMM.
+ * @param message The message to be encrypted.
+ * @return Encytped message.
+ */
+ulli* Encypt(ulli* message) {
+	ulli* E_local = copyUlli(E);
+	return ME_MMM(message, E_local);
+}
+
+/**
+ * Cumputes the decryption of the message with ME_MMM.
+ * @param message The message to be encrypted.
+ * @return Decrypted message.
+ */
+ulli* Decrypt(ulli* message) {
+	ulli* D_local = copyUlli(D);
+	return ME_MMM(message, D_local);
 }
 
 // int main(void) {
