@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
 	FILE* output = fopen("./results/results.csv", "w+");
 	fprintf(output, "encrypt,decrypt\n");
 	loop_start = clock();
-	int i = 0;
+	//int i = 0;
 	while (1) {
 		encrypt_start = 0;
 		encrypt_end = 0;
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 		decrypt_end = 0;
 
 		if (fgets(line, 11, stream)  == NULL) break;
-		fprintf(stderr, "Line %i: %s\n", i++, line);
+		//fprintf(stderr, "Line %i: %s\n", i++, line);
 
 		message[LOW] = 0LLU;
 		message[HIGH] = 0LLU;
