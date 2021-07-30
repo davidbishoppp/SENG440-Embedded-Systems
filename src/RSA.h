@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "u128.h"
 
+/**
+ * TODO: Move these to gloabl variables and localize them later?
+ */
 #define M_LOW 943997864817796661 // 944871836856449473 = 0xD1CDBEDF21979C1
 #define BIT_LENGTH 60
 #define R_LOW  1152921504606846976
@@ -23,8 +26,7 @@
  * @param Y Operand 2
  * @return = X*Y*R^-1 % M
 */
-uint64x2_t MMM(uint64x2_t X, uint64x2_t Y) {
-	register uint64x2_t M = newU128(0, M_LOW);
+uint64x2_t MMM(uint64x2_t X, uint64x2_t Y, uint64x2_t M) {
 	register uint64x2_t Z = newU128(0, 0);
 	register int n;
 	register int i;
@@ -49,34 +51,32 @@ uint64x2_t MMM(uint64x2_t X, uint64x2_t Y) {
 }
 
 /**
- * Computes Montgomery Modular Multiplication without scale factor R^-1
- * @param X Operand 1
- * @param Y Operand 2
- * @return = X*Y mod M
-*/
-uint64x2_t MMM_without_scale(uint64x2_t X, uint64x2_t Y) {
-	uint64x2_t one = newU128(0, 1);
-	uint64x2_t R2 = newU128(0, R2_LOW);
-	uint64x2_t X_bar = MMM(X, R2);
-	uint64x2_t Y_bar = MMM(Y, R2);
-	uint64x2_t Z_bar = MMM(X_bar, Y_bar);
-	uint64x2_t temp = MMM(Z_bar, one);
-	return temp;
-}
-
-/**
  * Computes Modular Exponentiation with MMM
  * @param B Base
  * @param Exp Exponent
  * @return = B^E mod M
+ * TODO: Bring MMM_without_scale into ME_MMM. register each variable
  */
 uint64x2_t ME_MMM(uint64x2_t B, uint64x2_t Exp) {
-	uint64x2_t Z = newU128(0, 1);
+	register uint64x2_t Z = newU128(0, 1);
+	register uint64x2_t M = newU128(0, M_LOW);
+	register uint64x2_t R2 = newU128(0, R2_LOW);
+	register uint64x2_t one = newU128(0, 1);
+	register uint64x2_t X_bar_z;
+	register uint64x2_t Y_bar_z;
+	register uint64x2_t Z_bar_z;
+	register uint64x2_t X_bar_b;
+	register uint64x2_t Z_bar_b;
 	while (vgetq_lane_u64(Exp, LOW) || vgetq_lane_u64(Exp, HIGH)) {
 		if(and_low(Exp)) {
-			Z = MMM_without_scale(B, Z);
+			X_bar_z = MMM(B, R2, M);
+			Y_bar_z = MMM(Z, R2, M);
+			Z_bar_z = MMM(X_bar_z, Y_bar_z, M);
+			Z = MMM(Z_bar_z, one, M);
 		}
-		B = MMM_without_scale(B, B);
+		X_bar_b = MMM(B, R2, M);
+		Z_bar_b = MMM(X_bar_b, X_bar_b, M);
+		B = MMM(Z_bar_b, one, M);
 		Exp = shiftRight(Exp);
 	}
 	return Z;

@@ -20,6 +20,7 @@ static inline uint32_t and_low(uint64x2_t a) {
 
 /**
  * Make a new ulli from n.
+ * TODO: Optimize?
  */
 static inline uint64x2_t newU128(uint64_t high, uint64_t low) {
 	uint64_t tmp[LENGTH];
