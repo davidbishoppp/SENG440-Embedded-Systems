@@ -55,28 +55,9 @@ void printU128(uint64x2_t a, const char* label) {
  * @return a shifted right by b.
  */
 uint64x2_t shiftRight(uint64x2_t a) {
-	int carry = 0;
-	if (a[HIGH] & 1) carry = 1;
 	uint64x2_t tmp = vshrq_n_u64(a, 1);
-	if (carry) {
+	if (a[HIGH] & 1) {
 		tmp[LOW] |= MSB_SET;
-	}
-	return tmp;
-}
-
-/**
- * Bit shift left a 128bit number through ulli.
-* 
- * @param a Operand.
- * @param b Number to shift by.
- * @return a shifted left by b.
- */
-uint64x2_t shiftLeft(uint64x2_t a) {
-	int carry = 0;
-	if (a[LOW] & MSB_SET) carry = 1;
-	uint64x2_t tmp = vshlq_n_u64(a, 1);
-	if (carry) {
-		tmp[HIGH] |= 1;
 	}
 	return tmp;
 }
@@ -89,13 +70,11 @@ uint64x2_t shiftLeft(uint64x2_t a) {
  * @return a + b
  */
 uint64x2_t add(uint64x2_t a, uint64x2_t b) {
-	uint64_t before = b[LOW]; // Before
-	
+	/**
+	 * NOTE: Found that in total vgetq_lane_u64 slowed down total computation time by .9s/
+	 */
 	uint64x2_t tmp = vaddq_u64(a, b); // add
-
-	uint64_t after = tmp[LOW]; // After
-
-	if (after < before) { // Carry
+	if (tmp[LOW] < b[LOW]) { // Carry
 		tmp[HIGH]++;
 	}
 	return tmp;
@@ -110,16 +89,9 @@ uint64x2_t add(uint64x2_t a, uint64x2_t b) {
  */
 uint64x2_t subtract(uint64x2_t a, uint64x2_t b) {
 	uint64x2_t tmp = vsubq_u64(a, b); // subtract
-
-	uint64_t result[2];
-	vst1q_u64(result, tmp); // Store result.
-
-	uint64_t before[2];
-	vst1q_u64(before, a); // Store before value.
-
-	if (result[LOW] > before[LOW]) { // Underflow.
-		result[HIGH]--;
-		return vld1q_u64(result);
+	if (tmp[LOW] > a[LOW]) { // Underflow.
+		tmp[HIGH]--;
+		return tmp;
 	}
 	return tmp;
 }
@@ -132,12 +104,12 @@ uint32_t greaterThanEqual(uint64x2_t a, uint64x2_t b) {
 	uint64_t a_high = vgetq_lane_u64(a, HIGH);
 	uint64_t b_low = vgetq_lane_u64(b, LOW);
 	uint64_t b_high = vgetq_lane_u64(b, HIGH);
-	if ((a_high > b_high) || ((a_high == b_high) && (a_low > b_low))) return 1;
-	return 0;
+	if ((a_high < b_high) || ((a_high == b_high) && (a_low < b_low))) return 0;
+	return 1;
 }
 
 /**
- * a > b
+ * a == b
  */
 uint32_t equal(uint64x2_t a, uint64x2_t b) {
 	uint64_t a_low = vgetq_lane_u64(a, LOW);
@@ -151,7 +123,7 @@ uint32_t equal(uint64x2_t a, uint64x2_t b) {
 /**
  * Copy uint8_t array into uint64x2_t.
  */
-uint64x2_t copyStr(const uint8_t* str) {
+uint64x2_t copyStr(const char* str) {
 	return newU128(0, atoll(str));
 }
 

@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 	//timing
 	clock_t encrypt_start, encrypt_end, decrypt_start, decrypt_end, loop_start, loop_end;
 
-	uint8_t line[10];
+	char line[10];
 	FILE* stream = fopen(MESSAGE_PATH, "r");
 	FILE* output = fopen("./results/results.csv", "w+");
 	fprintf(output, "encrypt,decrypt\n");
