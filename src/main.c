@@ -9,12 +9,12 @@
 #define LENGTH_BYTES 16
 
 int main(int argc, char* argv[]) {
-	ulli message[LENGTH];
+	uint64x2_t message;
 
 	//timing
 	clock_t encrypt_start, encrypt_end, decrypt_start, decrypt_end, loop_start, loop_end;
 
-	char line[10];
+	uint8_t line[10];
 	FILE* stream = fopen(MESSAGE_PATH, "r");
 	FILE* output = fopen("./results/results.csv", "w+");
 	fprintf(output, "encrypt,decrypt\n");
@@ -29,16 +29,17 @@ int main(int argc, char* argv[]) {
 		if (fgets(line, 11, stream)  == NULL) break;
 		//fprintf(stderr, "Line %i: %s\n", i++, line);
 
-		message[LOW] = 0LLU;
-		message[HIGH] = 0LLU;
-		copyStr(message, line);
+		message = copyStr(line);
+		//printU128(message, "Message");
 
 		encrypt_start = clock();
-		ulli* encrypted = Encypt(message);
+		uint64x2_t encrypted = Encypt(message);
 		encrypt_end = clock();
+		//printU128(encrypted, "Encrypted");
+
 
 		decrypt_start = clock();
-		ulli* decrypted = Decrypt(encrypted);
+		uint64x2_t decrypted = Decrypt(encrypted);
 		decrypt_end = clock();
 
 		double encrypt_time = (double)(encrypt_end - encrypt_start) / CLOCKS_PER_SEC;
@@ -47,20 +48,13 @@ int main(int argc, char* argv[]) {
 		//printf("decrypt time: %.7f\n", decrypt_time);
 		fprintf(output, "%.7f,%.7f\n", encrypt_time, decrypt_time);
 
-		//printUlli(message, "Message");
-		//printUlli(encrypted, "Encrypted");
-		//printUlli(decrypted, "Decrypted");
+		//printU128(decrypted, "Decrypted");
 
-		if (!equal(message, decrypted) || zero(message) || zero(encrypted) || zero(decrypted)) {
-			printf("MMM DID NOT encrypt successfully!\n");
-			free(encrypted);
-			free(decrypted);
+		if (!equal(message, decrypted)) {
+			printf("NOT euqal!");
 			return 1;
-		} else {
-			//printf("MMM decrypted successfully!\n");
 		}
-		free(encrypted);
-		free(decrypted);
+
 	}
 	loop_end = clock();
 	fclose(stream);

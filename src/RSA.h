@@ -1,36 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ulli.h"
+#include "u128.h"
 
-ulli M[2] = {0LLU, 943997864817796661}; // 944871836856449473 = 0xD1CDBEDF21979C1
-ulli R2[2] = {0LLU, 58372345598942367}; //(1<<12) << 1 = 16777216 mod 3233 = 1179
-ulli E[2] = {0LLU, 535447308525948791}; // 288944436900192587 = 0x402896F3942E14B
-ulli D[2] = {0LLU, 809798858682407111}; // 931743036858455603 = 0xCEE375AFDE45633
+#define M_LOW 943997864817796661 // 944871836856449473 = 0xD1CDBEDF21979C1
+#define BIT_LENGTH 60
+#define R_LOW  1152921504606846976
+#define R2_LOW 58372345598942367 //(1<<12) << 1 = 16777216 mod 3233 = 1179
+#define E_LOW 535447308525948791 // 288944436900192587 = 0x402896F3942E14B
+#define D_LOW 809798858682407111 // 931743036858455603 = 0xCEE375AFDE45633
 
 // Example values from slides
-//ulli P[2] = {0LLU, 61LLU};
-//ulli Q[2] = {0LLU, 53LLU};
-// ulli M[2] = {0LLU, 3233LLU}; // 944871836856449473 = 0xD1CDBEDF21979C1
-// ulli R2[2] = {0LLU, 1179LLU}; // (1<<12) << 1 = 16777216 mod 3233 = 1179
-// ulli E[2] = {0LLU, 17LLU}; // 288944436900192587 = 0x402896F3942E14B
-// ulli D[2] = {0LLU, 2753LLU}; // 931743036858455603 = 0xCEE375AFDE45633
-
-/**
- * Computes R from bitlength
- * 
- * @param b Bit length
- */
-ulli* newR(int b) {
-	ulli* result = newUlli(0);
-	if (b == 0 || b > 128) {
-		return result;
-	} else if (b > 64) {
-		result[HIGH] |= (1 << (b-64));
-	} else {
-		result[LOW] |= (1 << b);
-	}
-	return result;
-}
+//uint64x2_t P[2] = {0LLU, 61LLU};
+//uint64x2_t Q[2] = {0LLU, 53LLU};
+// uint64x2_t M[2] = {0LLU, 3233LLU}; // 944871836856449473 = 0xD1CDBEDF21979C1
+// uint64x2_t R2[2] = {0LLU, 1179LLU}; // (1<<12) << 1 = 16777216 mod 3233 = 1179
+// uint64x2_t E[2] = {0LLU, 17LLU}; // 288944436900192587 = 0x402896F3942E14B
+// uint64x2_t D[2] = {0LLU, 2753LLU}; // 931743036858455603 = 0xCEE375AFDE45633
 
 /**
  * Computes Montgomery Modular Multiplication
@@ -38,30 +23,28 @@ ulli* newR(int b) {
  * @param Y Operand 2
  * @return = X*Y*R^-1 % M
 */
-ulli* MMM(ulli* X, ulli* Y) {
-	ulli* Z = newUlli(0);
-	ulli* X_local = copyUlli(X);
-	ulli* M_local = copyUlli(M);
-	int n;
-	int i;
-	const int length = bitLength(M_local);
-	for (i = 0; i < length; i++) {
-		n = (Z[LOW] & 1) ^ ((X_local[LOW] & 1) & (Y[LOW] & 1));
+uint64x2_t MMM(uint64x2_t X, uint64x2_t Y) {
+	register uint64x2_t M = newU128(0, M_LOW);
+	register uint64x2_t Z = newU128(0, 0);
+	register int n;
+	register int i;
+	register const int Y1 = and_low(Y);
+	// TODO: Load in only important 32bits at a time???
+	for (i = 0; i < BIT_LENGTH; i++) {
+		n = and_low(Z) ^ (and_low(X) & Y1);
 		if (n) {
-			add(Z, M_local, Z);
+			Z = add(Z, M);
 		}
-		if (X_local[LOW] & 1) {
-			add(Z, Y, Z);
+		if (and_low(X)) {
+			Z = add(Z, Y);
 		}
-		shiftRight(X_local);
-		shiftRight(Z);
+		X = shiftRight(X);
+		Z = shiftRight(Z);
 	}
 	// If T >= M
-	if (greaterThan(Z, M_local)) {
-		subtract(Z, Z, M_local);
+	if (greaterThanEqual(Z, M)) {
+		Z = subtract(Z, M);
 	}
-	free(X_local);
-	free(M_local);
 	return Z;
 }
 
@@ -71,20 +54,13 @@ ulli* MMM(ulli* X, ulli* Y) {
  * @param Y Operand 2
  * @return = X*Y mod M
 */
-ulli* MMM_without_scale(ulli* X, ulli* Y) {
-	ulli* one = newUlli(1);
-	ulli* R2_local = copyUlli(R2);
-	ulli* X_bar = MMM(X, R2_local);
-	ulli* Y_bar = MMM(Y, R2_local);
-	ulli* Z_bar = MMM(X_bar, Y_bar);
-	ulli* temp = MMM(Z_bar, one);
-	
-	free(one);
-	free(R2_local);
-	free(X_bar);
-	free(Y_bar);
-	free(Z_bar);
-
+uint64x2_t MMM_without_scale(uint64x2_t X, uint64x2_t Y) {
+	uint64x2_t one = newU128(0, 1);
+	uint64x2_t R2 = newU128(0, R2_LOW);
+	uint64x2_t X_bar = MMM(X, R2);
+	uint64x2_t Y_bar = MMM(Y, R2);
+	uint64x2_t Z_bar = MMM(X_bar, Y_bar);
+	uint64x2_t temp = MMM(Z_bar, one);
 	return temp;
 }
 
@@ -94,14 +70,14 @@ ulli* MMM_without_scale(ulli* X, ulli* Y) {
  * @param Exp Exponent
  * @return = B^E mod M
  */
-ulli* ME_MMM(ulli* B, ulli* Exp) {
-	ulli* Z = newUlli(1);
-	while (Exp[LOW] != 0LLU || Exp[HIGH] != 0LLU) {
-		if(Exp[LOW] & 1LLU) {
+uint64x2_t ME_MMM(uint64x2_t B, uint64x2_t Exp) {
+	uint64x2_t Z = newU128(0, 1);
+	while (vgetq_lane_u64(Exp, LOW) || vgetq_lane_u64(Exp, HIGH)) {
+		if(and_low(Exp)) {
 			Z = MMM_without_scale(B, Z);
 		}
 		B = MMM_without_scale(B, B);
-		shiftRight(Exp);
+		Exp = shiftRight(Exp);
 	}
 	return Z;
 }
@@ -111,9 +87,8 @@ ulli* ME_MMM(ulli* B, ulli* Exp) {
  * @param message The message to be encrypted.
  * @return Encytped message.
  */
-ulli* Encypt(ulli* message) {
-	ulli* E_local = copyUlli(E);
-	return ME_MMM(message, E_local);
+uint64x2_t Encypt(uint64x2_t message) {
+	return ME_MMM(message, newU128(0, E_LOW));
 }
 
 /**
@@ -121,38 +96,26 @@ ulli* Encypt(ulli* message) {
  * @param message The message to be encrypted.
  * @return Decrypted message.
  */
-ulli* Decrypt(ulli* message) {
-	ulli* D_local = copyUlli(D);
-	return ME_MMM(message, D_local);
+uint64x2_t Decrypt(uint64x2_t message) {
+	return ME_MMM(message, newU128(0, D_LOW));
 }
 
 // int main(void) {
-// 	// Example values from slides.
-// 	//ulli P[2] = {0LLU, 61LLU};
-// 	//ulli Q[2] = {0LLU, 53LLU};
-// 	ulli M[2] = {0LLU, 0xD1CDBEDF21979C1}; // 944871836856449473 = 0xD1CDBEDF21979C1
+// 	uint64x2_t message = newU128(0, 123);
 
-// 	ulli E[2] = {0LLU, 0x402896F3942E14B}; // 288944436900192587 = 0x402896F3942E14B
-// 	ulli D[2] = {0LLU, 0xCEE375AFDE45633}; // 931743036858455603 = 0xCEE375AFDE45633
+// 	uint64x2_t X = newU128(0, 100);
+// 	uint64x2_t Y = newU128(0, R_LOW); // R = (1<<12) % 3233 = 863
+// 	uint64x2_t Y2 = newU128(0, 2); // R = (1<<12) % 3233 = 863
 
-// 	ulli message[2] = {0LLU, 123LLU};
+// 	uint64x2_t test1 = MMM(X, Y);
+// 	printU128(test1, "test1"); // Expect 100.
 
-// 	ulli X[2] = {0LLU, 100LLU};
-// 	ulli Y[2] = {0LLU, 863LLU}; // R = (1<<12) % 3233 = 863
+// 	uint64x2_t test2 = MMM_without_scale(X, Y2);
+// 	printU128(test2, "test2"); // Expect 200.
 
-// 	ulli* test1 = MMM(X, Y, M);
+// 	uint64x2_t test3 = Encypt(message);
+// 	printU128(test3, "test3"); // Expect 855.
 
-// 	printUlli(test1, "test1"); // Expect 100.
-
-// 	ulli* test2 = MMM_without_scale(X, Y, M);
-
-// 	printUlli(test2, "test2"); // Expect 2242.
-
-// 	ulli* test3 = ME_MMM(message, E, M);
-
-// 	printUlli(test3, "test3"); // Expect 855.
-
-// 	ulli* test4 = ME_MMM(test3, D, M);
-
-// 	printUlli(test4, "test4"); // Expect 123.
+// 	uint64x2_t test4 = Decrypt(test3);
+// 	printU128(test4, "test4"); // Expect 123.
 // }
