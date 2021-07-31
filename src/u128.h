@@ -6,7 +6,7 @@
 #define LENGTH 2
 #define MSB_LSB_SET 0x8000000000000001
 #define MSB_SET     0x8000000000000000
-#define ULL_11          0x1000000000000001
+#define ULL_11      0x1000000000000001
 #define HIGH 1
 #define LOW 1-HIGH // 0 or 1
 
@@ -15,7 +15,7 @@
 // TODO: Replace all a[LOW] etc with vget_lane_....
 
 static inline uint32_t and_low(uint64x2_t a) {
-	return (uint32_t) (vgetq_lane_u64(a, LOW) & 1);
+	return (uint32_t) (a[LOW] & 1);
 }
 
 /**
@@ -27,6 +27,14 @@ static inline uint64x2_t newU128(uint64_t high, uint64_t low) {
 	tmp[LOW] = low;
 	tmp[HIGH] = high;
 	return vld1q_u64(tmp);
+}
+
+/**
+ * Make a new ulli from n.
+ * TODO: Optimize?
+ */
+static inline uint64x2_t u128FromChar(char* str) {
+	return vreinterpretq_u64_u8(vld1q_s8((const signed char*)str));
 }
 
 /**
@@ -71,9 +79,6 @@ uint64x2_t shiftRight(uint64x2_t a) {
  * @return a + b
  */
 uint64x2_t add(uint64x2_t a, uint64x2_t b) {
-	/**
-	 * NOTE: Found that in total vgetq_lane_u64 slowed down total computation time by .9s/
-	 */
 	uint64x2_t tmp = vaddq_u64(a, b); // add
 	if (tmp[LOW] < b[LOW]) { // Carry
 		tmp[HIGH]++;

@@ -27,8 +27,10 @@ def main():
 
 def generateKey(keySize):
 	# Step 1: Create two prime numbers, p and q. Calculate n = p * q.
-	p = 981542921
-	q = 961748941
+	# https://primes.utm.edu/lists/2small/0bit.html
+	p = 9223372036854775337
+	q = 9223372036854775433
+
 	n = p * q
 
 	while True:

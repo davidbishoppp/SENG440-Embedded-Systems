@@ -5,8 +5,8 @@
 #include <time.h>
 #include "RSA.h"
 
-#define MESSAGE_PATH "./generator/inputs.txt"
-#define LENGTH_BYTES 16
+#define MESSAGE_PATH "./generator/inputs_new.txt"
+#define MAX_MESSAGE 15
 
 int main(int argc, char* argv[]) {
 	uint64x2_t message;
@@ -14,29 +14,26 @@ int main(int argc, char* argv[]) {
 	//timing
 	clock_t encrypt_start, encrypt_end, decrypt_start, decrypt_end, loop_start, loop_end;
 
-	char line[10];
+	char line[MAX_MESSAGE];
 	FILE* stream = fopen(MESSAGE_PATH, "r");
 	FILE* output = fopen("./results/results.csv", "w+");
 	fprintf(output, "encrypt,decrypt\n");
 	loop_start = clock();
-	//int i = 0;
-	while (1) {
+	while (fgets(line, MAX_MESSAGE, stream) != NULL) {
 		encrypt_start = 0;
 		encrypt_end = 0;
 		decrypt_start = 0;
 		decrypt_end = 0;
 
-		if (fgets(line, 11, stream)  == NULL) break;
-		//fprintf(stderr, "Line %i: %s\n", i++, line);
+		//fprintf(stderr, "Line: %s\n" line);
 
-		message = copyStr(line);
+		message = u128FromChar(line);
 		//printU128(message, "Message");
 
 		encrypt_start = clock();
 		uint64x2_t encrypted = Encypt(message);
 		encrypt_end = clock();
 		//printU128(encrypted, "Encrypted");
-
 
 		decrypt_start = clock();
 		uint64x2_t decrypted = Decrypt(encrypted);
@@ -51,10 +48,9 @@ int main(int argc, char* argv[]) {
 		//printU128(decrypted, "Decrypted");
 
 		if (!equal(message, decrypted)) {
-			printf("NOT euqal!");
+			printf("NOT euqal!\n");
 			return 1;
 		}
-
 	}
 	loop_end = clock();
 	fclose(stream);
