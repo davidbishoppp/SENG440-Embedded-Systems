@@ -2,7 +2,7 @@ import sys
 import math
 import csv
 
-with open ("./results.csv", newline='') as file:
+with open ("./results/results.csv", newline='') as file:
     reader = csv.DictReader(file)
     encrypt_total = 0
     encrypt_min = 1
