@@ -34,16 +34,15 @@
 */
 uint64x2_t MMM(register uint64x2_t X, register uint64x2_t Y, register uint64x2_t M) {
 	register uint64x2_t Z = newU128(0, 0);
-	register int n;
-	register int i;
+	register int i, X1;
 	register const int Y1 = and_low(Y);
 	// TODO: Load in only important 32bits at a time???
-	for (i = 0; i < M_BIT_LENGTH; i++) {
-		n = and_low(Z) ^ (and_low(X) & Y1);
-		if (n) {
+	for (i = M_BIT_LENGTH; i; i--) {
+		X1 = and_low(X);
+		if (and_low(Z) ^ (X1 & Y1)) {
 			Z = add(Z, M);
 		}
-		if (and_low(X)) {
+		if (X1) {
 			Z = add(Z, Y);
 		}
 		X = shiftRight(X);
@@ -71,7 +70,7 @@ uint64x2_t MMM_1(register uint64x2_t Y, register uint64x2_t M) {
 	}
 	Z = add(Z, Y);
 	Z = shiftRight(Z);
-	for (i = 1; i < M_BIT_LENGTH; i++) {
+	for (i = M_BIT_LENGTH - 1; i; i--) {
 		if (and_low(Z)) {
 			Z = add(Z, M);
 		}
@@ -89,7 +88,6 @@ uint64x2_t MMM_1(register uint64x2_t Y, register uint64x2_t M) {
  * @param B Base
  * @param Exp Exponent
  * @return = B^E mod M
- * TODO: Bring MMM_without_scale into ME_MMM. register each variable
  */
 uint64x2_t ME_MMM(register uint64x2_t B, register uint64x2_t Exp) {
 	register uint64x2_t Z = newU128(0, 1);

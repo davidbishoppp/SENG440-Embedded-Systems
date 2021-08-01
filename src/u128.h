@@ -63,7 +63,7 @@ void printU128(uint64x2_t a, const char* label) {
  * @param b Number to shift by.
  * @return a shifted right by b.
  */
-uint64x2_t shiftRight(uint64x2_t a) {
+static inline uint64x2_t shiftRight(uint64x2_t a) {
 	uint64x2_t tmp = vshrq_n_u64(a, 1);
 	if (a[HIGH] & 1) {
 		tmp[LOW] |= MSB_SET;
@@ -78,7 +78,7 @@ uint64x2_t shiftRight(uint64x2_t a) {
  * @param b Operand 2
  * @return a + b
  */
-uint64x2_t add(uint64x2_t a, uint64x2_t b) {
+static inline uint64x2_t add(uint64x2_t a, uint64x2_t b) {
 	uint64x2_t tmp = vaddq_u64(a, b); // add
 	if (tmp[LOW] < b[LOW]) { // Carry
 		tmp[HIGH]++;
@@ -93,7 +93,7 @@ uint64x2_t add(uint64x2_t a, uint64x2_t b) {
  * @param b Operand 2.
  * @return a - b
  */
-uint64x2_t subtract(uint64x2_t a, uint64x2_t b) {
+static inline uint64x2_t subtract(uint64x2_t a, uint64x2_t b) {
 	uint64x2_t tmp = vsubq_u64(a, b); // subtract
 	if (tmp[LOW] > a[LOW]) { // Underflow.
 		tmp[HIGH]--;
@@ -106,10 +106,10 @@ uint64x2_t subtract(uint64x2_t a, uint64x2_t b) {
  * a > b
  */
 uint32_t greaterThanEqual(uint64x2_t a, uint64x2_t b) {
-	uint64_t a_low = vgetq_lane_u64(a, LOW);
-	uint64_t a_high = vgetq_lane_u64(a, HIGH);
-	uint64_t b_low = vgetq_lane_u64(b, LOW);
-	uint64_t b_high = vgetq_lane_u64(b, HIGH);
+	uint64_t a_low = a[LOW];
+	uint64_t a_high = a[HIGH];
+	uint64_t b_low = a[LOW];
+	uint64_t b_high = b[HIGH];
 	if ((a_high < b_high) || ((a_high == b_high) && (a_low < b_low))) return 0;
 	return 1;
 }
@@ -129,7 +129,7 @@ uint32_t equal(uint64x2_t a, uint64x2_t b) {
 /**
  * Copy uint8_t array into uint64x2_t.
  */
-uint64x2_t copyStr(const char* str) {
+static inline uint64x2_t copyStr(const char* str) {
 	return newU128(0, atoll(str));
 }
 
