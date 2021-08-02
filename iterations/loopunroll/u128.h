@@ -18,7 +18,8 @@ static inline uint32_t and_low(uint64x2_t a) {
 }
 
 /**
- * Make a new u128.
+ * Make a new ulli from n.
+ * TODO: Optimize?
  */
 static inline uint64x2_t newU128(uint64_t high, uint64_t low) {
 	uint64_t tmp[LENGTH];
@@ -35,14 +36,15 @@ static inline uint64x2_t newU128_0() {
 }
 
 /**
- * Make a new u128 from str.
+ * Make a new ulli from n.
+ * TODO: Optimize?
  */
 static inline uint64x2_t u128FromChar(char* str) {
 	return vreinterpretq_u64_u8(vld1q_s8((const signed char*)str));
 }
 
 /**
- * Print u128.
+ * Print ulli.
  */
 void printU128(uint64x2_t a, const char* label) {
 	if (PRINT_IN_HEX) {
@@ -61,7 +63,7 @@ void printU128(uint64x2_t a, const char* label) {
 }
 
 /**
- * Bit shift right.
+ * Bit shift right a 128bit number through ulli.
  * 
  * @param a Operand
  * @param b Number to shift by.
@@ -74,7 +76,7 @@ static inline uint64x2_t shiftRight(uint64x2_t a) {
 }
 
 /**
- * Add two 128bit numbers through u128.
+ * Add two 128bit numbers through ulli.
  * 
  * @param a Operand 1
  * @param b Operand 2
@@ -87,7 +89,7 @@ static inline uint64x2_t add(uint64x2_t a, uint64x2_t b) {
 }
 
 /**
- * Subtract two 128bit numbers through u128.
+ * Subtract two 128bit numbers through ulli.
  * 
  * @param a Operand 1.
  * @param b Operand 2.

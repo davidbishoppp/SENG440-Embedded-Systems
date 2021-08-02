@@ -67,19 +67,19 @@ equal:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
-	push	{r4, r5, r6, r7, r8, r9, r10, fp}
-	vmov	r4, r5, d0  @ v2di
-	vmov	r6, r7, d1
-	vmov	r8, r9, d2  @ v2di
-	vmov	r10, fp, d3
-	cmp	fp, r7
-	cmpeq	r10, r6
+	vmov	r0, r1, d1  @ v2di
+	vmov	r2, r3, d3  @ v2di
+	cmp	r1, r3
+	cmpeq	r0, r2
 	movne	r0, #0
+	push	{r4, r5}
 	moveq	r0, #1
-	cmp	r9, r5
-	cmpeq	r8, r4
+	vmov	r4, r5, d0  @ v2di
+	vmov	r2, r3, d2  @ v2di
+	cmp	r5, r3
+	cmpeq	r4, r2
 	movne	r0, #0
-	pop	{r4, r5, r6, r7, r8, r9, r10, fp}
+	pop	{r4, r5}
 	bx	lr
 	.size	equal, .-equal
 	.align	2
@@ -89,17 +89,14 @@ equal:
 	.fpu neon
 	.type	MMM, %function
 MMM:
-	@ args = 0, pretend = 0, frame = 16
+	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r4, r5, r6, r7, r8, r9, lr}
-	vmov.i32	q8, #0  @ v2di
-	sub	sp, sp, #20
-	vmov	r6, r7, d2  @ v2di
-	vst1.64	{d16-d17}, [sp:64]
 	mov	ip, #126
-	mov	lr, r6
-	vld1.64	{d16-d17}, [sp:64]
+	vmov	r6, r7, d2  @ v2di
 	vmov	r4, r5, d4  @ v2di
+	mov	lr, r6
+	vmov.i32	q8, #0  @ v2di
 	b	.L15
 .L25:
 	vmov	r8, r9, d17  @ v2di
@@ -162,28 +159,24 @@ MMM:
 	vmov	r0, r1, d5  @ v2di
 	cmp	r3, r1
 	cmpeq	r2, r0
-	bcc	.L18
+	bcc	.L9
 	vmov	r2, r3, d16  @ v2di
-	vsub.i64	q0, q8, q2
-	vmov	r0, r1, d0  @ v2di
+	vsub.i64	q2, q8, q2
+	vmov	r0, r1, d4  @ v2di
 	cmp	r1, r3
 	cmpeq	r0, r2
-	bhi	.L26
-	add	sp, sp, #20
-	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, pc}
-.L26:
-	vmov	r0, r1, d1  @ v2di
+	bls	.L18
+	vmov	r0, r1, d5  @ v2di
 	subs	r2, r0, #1
 	sbc	r3, r1, #0
-	vmov	d1, r2, r3
-	add	sp, sp, #20
-	@ sp needed
+	vmov	q8, q2  @ v2di
+	vmov	d17, r2, r3
+.L9:
+	vmov	q0, q8  @ v2di
 	pop	{r4, r5, r6, r7, r8, r9, pc}
 .L18:
+	vmov	q8, q2  @ v2di
 	vmov	q0, q8  @ v2di
-	add	sp, sp, #20
-	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, pc}
 	.size	MMM, .-MMM
 	.align	2
@@ -193,115 +186,92 @@ MMM:
 	.fpu neon
 	.type	MMM_1, %function
 MMM_1:
-	@ args = 0, pretend = 0, frame = 16
+	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
+	vmov	r2, r3, d0  @ v2di
+	and	r1, r2, #1
+	cmp	r1, #0
 	push	{r4, r5}
+	vmov	q8, q1  @ v2di
+	bne	.L27
 	vmov.i32	q8, #0  @ v2di
-	sub	sp, sp, #16
+.L27:
+	vadd.i64	q0, q8, q0
 	vmov	r0, r1, d0  @ v2di
-	vst1.64	{d16-d17}, [sp:64]
-	and	ip, r0, #1
-	vld1.64	{d16-d17}, [sp:64]
-	vmov	r2, r3, d16  @ v2di
-	and	r2, r2, #1
-	cmp	r2, ip
-	beq	.L28
-	vmov	r2, r3, d2  @ v2di
-	vadd.i64	q8, q8, q1
-	vmov	r4, r5, d16  @ v2di
-	cmp	r5, r3
-	cmpeq	r4, r2
-	bcc	.L45
-.L28:
-	vadd.i64	q8, q8, q0
-	vmov	r2, r3, d16  @ v2di
-	cmp	r1, r3
-	cmpeq	r0, r2
-	vmov	r0, r1, d17  @ v2di
-	bls	.L29
+	cmp	r3, r1
+	cmpeq	r2, r0
+	vmov	r0, r1, d1  @ v2di
+	bls	.L28
 	adds	r0, r0, #1
 	adc	r1, r1, #0
-	vmov	d17, r0, r1
-.L29:
+	vmov	d1, r0, r1
+.L28:
 	and	r2, r0, #1
 	mov	r3, #0
 	orrs	r3, r2, r3
-	vshr.u64	q8, q8, #1
-	beq	.L30
-	vmov	r0, r1, d16  @ v2di
+	vshr.u64	q0, q0, #1
+	beq	.L29
+	vmov	r0, r1, d0  @ v2di
 	mov	r2, r0
 	orr	r3, r1, #-2147483648
-	vmov	d16, r2, r3
-.L30:
+	vmov	d0, r2, r3
+.L29:
 	mov	ip, #125
 	vmov	r0, r1, d2  @ v2di
-	b	.L34
-.L47:
-	vmov	r4, r5, d17  @ v2di
-.L32:
+	b	.L33
+.L49:
+	vmov	r4, r5, d1  @ v2di
+.L31:
 	and	r2, r4, #1
 	mov	r3, #0
 	orrs	r3, r2, r3
-	vshr.u64	q8, q8, #1
-	beq	.L33
-	vmov	r4, r5, d16  @ v2di
+	vshr.u64	q0, q0, #1
+	beq	.L32
+	vmov	r4, r5, d0  @ v2di
 	mov	r2, r4
 	orr	r3, r5, #-2147483648
-	vmov	d16, r2, r3
-.L33:
+	vmov	d0, r2, r3
+.L32:
 	subs	ip, ip, #1
-	beq	.L46
-.L34:
-	vmov	r2, r3, d16  @ v2di
+	beq	.L48
+.L33:
+	vmov	r2, r3, d0  @ v2di
 	and	r2, r2, #1
 	cmp	r2, #0
-	beq	.L47
-	vadd.i64	q8, q8, q1
-	vmov	r2, r3, d16  @ v2di
+	beq	.L49
+	vadd.i64	q0, q0, q1
+	vmov	r2, r3, d0  @ v2di
 	cmp	r3, r1
 	cmpeq	r2, r0
-	vmov	r4, r5, d17  @ v2di
-	bcs	.L32
+	vmov	r4, r5, d1  @ v2di
+	bcs	.L31
 	adds	r4, r4, #1
 	adc	r5, r5, #0
-	vmov	d17, r4, r5
-	b	.L32
-.L46:
-	vmov	r2, r3, d17  @ v2di
+	vmov	d1, r4, r5
+	b	.L31
+.L48:
+	vmov	r2, r3, d1  @ v2di
 	vmov	r0, r1, d3  @ v2di
 	cmp	r3, r1
 	cmpeq	r2, r0
-	bcc	.L36
-	vmov	r2, r3, d16  @ v2di
-	vsub.i64	q0, q8, q1
-	vmov	r0, r1, d0  @ v2di
+	bcc	.L26
+	vmov	r2, r3, d0  @ v2di
+	vsub.i64	q1, q0, q1
+	vmov	r0, r1, d2  @ v2di
 	cmp	r1, r3
 	cmpeq	r0, r2
-	bhi	.L48
-	add	sp, sp, #16
-	@ sp needed
-	pop	{r4, r5}
-	bx	lr
-.L45:
-	vmov	r4, r5, d17  @ v2di
-	adds	r2, r4, #1
-	adc	r3, r5, #0
-	vmov	d17, r2, r3
-	b	.L28
-.L48:
-	vmov	r0, r1, d1  @ v2di
+	bls	.L35
+	vmov	r0, r1, d3  @ v2di
 	subs	r2, r0, #1
 	sbc	r3, r1, #0
-	vmov	d1, r2, r3
-	add	sp, sp, #16
-	@ sp needed
+	vmov	d3, r2, r3
+	vmov	q0, q1  @ v2di
+.L26:
 	pop	{r4, r5}
 	bx	lr
-.L36:
-	vmov	q0, q8  @ v2di
-	add	sp, sp, #16
-	@ sp needed
+.L35:
+	vmov	q0, q1  @ v2di
 	pop	{r4, r5}
 	bx	lr
 	.size	MMM_1, .-MMM_1
@@ -314,7 +284,7 @@ MMM_1:
 ME_MMM:
 	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, lr}
+	push	{r4, r5, r6, r7, lr}
 	vldr	d16, .L63
 	vldr	d17, .L63+8
 	sub	sp, sp, #20
@@ -322,7 +292,7 @@ ME_MMM:
 	vldr	d21, .L63+24
 	vst1.64	{d16-d17}, [sp:64]
 	vmov	q11, q0  @ v2di
-	vld1.64	{d28-d29}, [sp:64]
+	vld1.64	{d26-d27}, [sp:64]
 	vldr	d16, .L63+32
 	vldr	d17, .L63+40
 	vst1.64	{d20-d21}, [sp:64]
@@ -330,64 +300,59 @@ ME_MMM:
 	vld1.64	{d20-d21}, [sp:64]
 	vst1.64	{d16-d17}, [sp:64]
 	vld1.64	{d24-d25}, [sp:64]
-.L50:
-	vmov	r6, r7, d18  @ v2di
+.L51:
+	vmov	r2, r3, d18  @ v2di
+	orrs	r3, r2, r3
+	and	r1, r2, #1
+	vmov	r6, r7, d19  @ v2di
+	bne	.L54
 	orrs	r3, r6, r7
+	beq	.L62
+.L52:
+	vmov	q0, q11  @ v2di
 	vmov	q2, q10  @ v2di
 	vmov	q1, q12  @ v2di
-	vmov	q0, q11  @ v2di
-	vmov	r8, r9, d19  @ v2di
-	bne	.L53
-	orrs	r3, r8, r9
-	beq	.L61
 	bl	MMM
+	and	r4, r6, #1
+	mov	r5, #0
+	vmov	q2, q10  @ v2di
 	vmov	q1, q0  @ v2di
 	bl	MMM
-	vmov	q13, q0  @ v2di
-.L51:
-	vmov	q0, q13  @ v2di
 	vmov	q1, q10  @ v2di
 	bl	MMM_1
-	and	r4, r8, #1
-	mov	r5, #0
 	orrs	r3, r4, r5
 	vmov	q11, q0  @ v2di
 	vshr.u64	q9, q9, #1
-	beq	.L50
+	beq	.L51
 	vmov	r0, r1, d18  @ v2di
 	mov	r2, r0
 	orr	r3, r1, #-2147483648
 	vmov	d18, r2, r3
-	b	.L50
-.L53:
-	vmov	q1, q12  @ v2di
+	b	.L51
+.L54:
+	cmp	r1, #0
+	vmov	q0, q11  @ v2di
 	vmov	q2, q10  @ v2di
-	vmov	q0, q11  @ v2di
-	bl	MMM
-	and	r6, r6, #1
-	vmov	q1, q0  @ v2di
-	bl	MMM
-	cmp	r6, #0
-	vmov	q13, q0  @ v2di
 	vmov	q1, q12  @ v2di
-	vmov	q0, q11  @ v2di
-	beq	.L51
+	beq	.L52
 	bl	MMM
-	vmov	q11, q0  @ v2di
-	vmov	q0, q14  @ v2di
+	vmov	q14, q0  @ v2di
+	vmov	q2, q10  @ v2di
+	vmov	q0, q13  @ v2di
 	bl	MMM
 	vmov	q1, q0  @ v2di
-	vmov	q0, q11  @ v2di
+	vmov	q2, q10  @ v2di
+	vmov	q0, q14  @ v2di
 	bl	MMM
 	vmov	q1, q10  @ v2di
 	bl	MMM_1
-	vmov	q14, q0  @ v2di
-	b	.L51
-.L61:
-	vmov	q0, q14  @ v2di
+	vmov	q13, q0  @ v2di
+	b	.L52
+.L62:
+	vmov	q0, q13  @ v2di
 	add	sp, sp, #20
 	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, pc}
+	pop	{r4, r5, r6, r7, pc}
 .L64:
 	.align	3
 .L63:
@@ -466,69 +431,69 @@ Decrypt:
 	.fpu neon
 	.type	main, %function
 main:
-	@ args = 0, pretend = 0, frame = 56
+	@ args = 0, pretend = 0, frame = 48
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	push	{r4, r5, r6, r7, r8, r9, r10, lr}
 	vpush.64	{d8}
 	ldr	r1, .L80+40
 	ldr	r0, .L80+44
 	vldr.64	d8, .L80
 	vpush.64	{d10, d11, d12, d13, d14, d15}
+	ldr	r7, .L80+48
 	vldr	d12, .L80+8
 	vldr	d13, .L80+16
 	vldr	d10, .L80+24
 	vldr	d11, .L80+32
-	sub	sp, sp, #68
+	sub	sp, sp, #56
 	bl	fopen
-	ldr	r1, .L80+48
-	str	r0, [sp, #24]
-	ldr	r0, .L80+52
+	ldr	r1, .L80+52
+	mov	r6, r0
+	ldr	r0, .L80+56
 	bl	fopen
 	mov	r2, #16
 	mov	r1, #1
 	mov	r3, r0
 	mov	r5, r0
-	ldr	r0, .L80+56
+	ldr	r0, .L80+60
 	bl	fwrite
 	bl	clock
-	str	r0, [sp, #28]
+	mov	r8, r0
 .L74:
-	ldr	r2, [sp, #24]
+	mov	r2, r6
 	mov	r1, #15
-	add	r0, sp, #32
+	add	r0, sp, #24
 	bl	fgets
 	cmp	r0, #0
 	beq	.L79
-	add	r3, sp, #32
-	vld1.8	{d16-d17}, [r3:64]
-	vstr	d16, [sp, #8]
-	vstr	d17, [sp, #16]
+	add	r3, sp, #24
+	vld1.8	{d14-d15}, [r3:64]
 	bl	clock
-	add	r3, sp, #48
-	vstr	d12, [sp, #48]
-	vstr	d13, [sp, #56]
-	vldr	d0, [sp, #8]
-	vldr	d1, [sp, #16]
-	vld1.64	{d2-d3}, [r3:64]
-	mov	r6, r0
-	bl	ME_MMM
-	vmov	q7, q0  @ v2di
-	bl	clock
-	mov	r7, r0
-	bl	clock
-	add	r3, sp, #48
-	vstr	d10, [sp, #48]
-	vstr	d11, [sp, #56]
+	add	r3, sp, #40
+	vstr	d12, [sp, #40]
+	vstr	d13, [sp, #48]
 	vmov	q0, q7  @ v2di
 	vld1.64	{d2-d3}, [r3:64]
-	sub	r7, r7, r6
+	mov	r10, r0
+	bl	ME_MMM
+	add	r3, sp, #8
+	vst1.64	{d0-d1}, [r3:64]
+	bl	clock
+	mov	r9, r0
+	bl	clock
+	add	r3, sp, #8
+	vstr	d10, [sp, #40]
+	vstr	d11, [sp, #48]
+	vld1.64	{d0-d1}, [r3:64]
+	add	r3, sp, #40
+	vld1.64	{d2-d3}, [r3:64]
+	sub	r9, r9, r10
 	mov	r4, r0
 	bl	ME_MMM
-	vmov	r8, r9, d0  @ v2di
-	vmov	r10, fp, d1
+	add	r3, sp, #8
+	vst1.64	{d0-d1}, [r3:64]
 	bl	clock
-	vmov	s15, r7	@ int
-	ldr	r1, .L80+60
+	vmov	s15, r9	@ int
+	mov	r1, r7
 	vcvt.f64.s32	d16, s15
 	vdiv.f64	d16, d16, d8
 	sub	r4, r0, r4
@@ -539,38 +504,42 @@ main:
 	vdiv.f64	d17, d16, d8
 	vstr.64	d17, [sp]
 	bl	fprintf
-	ldrd	r2, [sp, #16]
-	ldrd	r0, [sp, #8]
-	cmp	r3, fp
-	cmpeq	r2, r10
+	vmov	r0, r1, d15  @ v2di
+	add	r3, sp, #8
+	vld1.64	{d0-d1}, [r3:64]
+	vmov	r2, r3, d1  @ v2di
+	cmp	r1, r3
+	cmpeq	r0, r2
+	moveq	ip, #1
+	vmov	r2, r3, d14  @ v2di
+	vmov	r0, r1, d0  @ v2di
+	movne	ip, #0
+	cmp	r3, r1
+	cmpeq	r2, r0
 	movne	r3, #0
-	moveq	r3, #1
-	cmp	r1, r9
-	cmpeq	r0, r8
-	movne	r3, #0
+	moveq	r3, ip
 	cmp	r3, #0
 	bne	.L74
 	ldr	r0, .L80+64
 	bl	puts
 .L75:
 	mov	r0, #1
-	add	sp, sp, #68
+	add	sp, sp, #56
 	@ sp needed
 	vldm	sp!, {d10-d15}
 	vldm	sp!, {d8}
-	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
 .L79:
 	bl	clock
 	mov	r4, r0
-	ldr	r0, [sp, #24]
+	sub	r8, r4, r8
+	mov	r0, r6
 	bl	fclose
 	mov	r0, r5
 	bl	fclose
-	ldr	r3, [sp, #28]
+	vmov	s15, r8	@ int
 	vldr.64	d17, .L80
-	sub	r4, r4, r3
 	ldr	r0, .L80+68
-	vmov	s15, r4	@ int
 	vcvt.f64.s32	d16, s15
 	vdiv.f64	d16, d16, d17
 	vmov	r2, r3, d16
@@ -591,10 +560,10 @@ main:
 	.word	144194563
 	.word	.LC1
 	.word	.LC2
+	.word	.LC6
 	.word	.LC3
 	.word	.LC4
 	.word	.LC5
-	.word	.LC6
 	.word	.LC7
 	.word	.LC8
 	.size	main, .-main

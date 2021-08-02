@@ -36,7 +36,6 @@ uint64x2_t MMM(register uint64x2_t X, register uint64x2_t Y, register uint64x2_t
 	register uint64x2_t Z = newU128_0();
 	register int i, X1;
 	register const int Y1 = and_low(Y);
-	// TODO: Load in only important 32bits at a time???
 	for (i = M_BIT_LENGTH; i; i--) {
 		X1 = and_low(X);
 		if (and_low(Z) ^ (X1 & Y1)) {
@@ -64,6 +63,7 @@ uint64x2_t MMM(register uint64x2_t X, register uint64x2_t Y, register uint64x2_t
 uint64x2_t MMM_1(register uint64x2_t Y, register uint64x2_t M) {
 	register uint64x2_t Z = newU128_0();
 	register int i;
+	// TODO: Load in only important 32bits at a time???
 	if (and_low(Y)) {
 		Z = add(Z, M);
 	}
@@ -92,18 +92,19 @@ uint64x2_t ME_MMM(register uint64x2_t B, register uint64x2_t Exp) {
 	register uint64x2_t Z = newU128(0, 1);
 	register uint64x2_t M = newU128(M_HIGH, M_LOW);
 	register uint64x2_t R2 = newU128(R2_HIGH, R2_LOW);
-	register uint64x2_t X_bar, Y_bar, Z_bar;
+	register uint64x2_t X_bar_z, Y_bar_z, Z_bar_z, X_bar_b, Z_bar_b;
 
 	while (Exp[LOW] || Exp[HIGH]) {
+		X_bar_b = MMM(B, R2, M);
+		Z_bar_b = MMM(X_bar_b, X_bar_b, M);
 		if(and_low(Exp)) {
-			X_bar = MMM(B, R2, M);
-			Y_bar = MMM(Z, R2, M);
-			Z_bar = MMM(X_bar, Y_bar, M);
-			Z = MMM_1(Z_bar, M);
+			X_bar_z = MMM(B, R2, M);
+			Y_bar_z = MMM(Z, R2, M);
+			Z_bar_z = MMM(X_bar_z, Y_bar_z, M);
+			Z = MMM_1(Z_bar_z, M);
 		}
-		X_bar = MMM(B, R2, M);
-		Z_bar = MMM(X_bar, X_bar, M);
-		B = MMM_1(Z_bar, M);
+
+		B = MMM_1(Z_bar_b, M);
 		Exp = shiftRight(Exp);
 	}
 	return Z;
