@@ -426,9 +426,14 @@ MMM:
 	add	fp, sp, #84
 	vmov	q6, q0  @ v2di
 	vmov	q7, q1  @ v2di
-	vmov	q5, q2  @ v2di
 	bl	newU128_0
 	vmov	q4, q0  @ v2di
+	adr	r3, .L44
+	ldrd	r2, [r3]
+	ldr	r0, .L44+8
+	mvn	r1, #-1073741824
+	bl	newU128
+	vmov	q5, q0  @ v2di
 	vmov	q0, q7  @ v2di
 	bl	and_low
 	mov	r3, r0
@@ -485,6 +490,12 @@ MMM:
 	@ sp needed
 	vldm	sp!, {d8-d15}
 	pop	{r4, r5, r6, r7, fp, pc}
+.L45:
+	.align	3
+.L44:
+	.word	176625
+	.word	0
+	.word	-423
 	.size	MMM, .-MMM
 	.align	2
 	.global	MMM_1
@@ -493,36 +504,22 @@ MMM:
 	.fpu neon
 	.type	MMM_1, %function
 MMM_1:
-	@ args = 0, pretend = 0, frame = 0
+	@ args = 0, pretend = 0, frame = 40
 	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{r4, r5, fp, lr}
+	push	{fp, lr}
 	vpush.64	{d8, d9, d10, d11, d12, d13}
-	add	fp, sp, #60
+	add	fp, sp, #52
+	sub	sp, sp, #40
 	vmov	q6, q0  @ v2di
-	vmov	q5, q1  @ v2di
 	bl	newU128_0
 	vmov	q4, q0  @ v2di
+	adr	r3, .L53
+	ldrd	r2, [r3]
+	ldr	r0, .L53+8
+	mvn	r1, #-1073741824
+	bl	newU128
+	vmov	q5, q0  @ v2di
 	vmov	q0, q6  @ v2di
-	bl	and_low
-	mov	r3, r0
-	cmp	r3, #0
-	beq	.L45
-	vmov	q1, q5  @ v2di
-	vmov	q0, q4  @ v2di
-	bl	add
-	vmov	q4, q0  @ v2di
-.L45:
-	vmov	q1, q6  @ v2di
-	vmov	q0, q4  @ v2di
-	bl	add
-	vmov	q4, q0  @ v2di
-	vmov	q0, q4  @ v2di
-	bl	shiftRight
-	vmov	q4, q0  @ v2di
-	mov	r4, #125
-	b	.L46
-.L48:
-	vmov	q0, q4  @ v2di
 	bl	and_low
 	mov	r3, r0
 	cmp	r3, #0
@@ -532,30 +529,77 @@ MMM_1:
 	bl	add
 	vmov	q4, q0  @ v2di
 .L47:
+	vmov	q1, q6  @ v2di
+	vmov	q0, q4  @ v2di
+	bl	add
+	vmov	q4, q0  @ v2di
 	vmov	q0, q4  @ v2di
 	bl	shiftRight
 	vmov	q4, q0  @ v2di
-	sub	r4, r4, #1
-.L46:
-	cmp	r4, #0
-	bne	.L48
+	vmov	q8, q4  @ v16qi
+	vstr	d16, [fp, #-76]
+	vstr	d17, [fp, #-68]
+	vldr	d16, [fp, #-76]
+	vldr	d17, [fp, #-68]
+	vcnt.8	q8, q8
+	vstr	d16, [fp, #-92]
+	vstr	d17, [fp, #-84]
+	ldrb	r3, [fp, #-92]	@ zero_extendqisi2
+	mov	r2, r3
+	ldrb	r3, [fp, #-91]	@ zero_extendqisi2
+	add	r3, r2, r3
+	ldrb	r2, [fp, #-90]	@ zero_extendqisi2
+	add	r3, r3, r2
+	ldrb	r2, [fp, #-89]	@ zero_extendqisi2
+	add	r3, r3, r2
+	ldrb	r2, [fp, #-88]	@ zero_extendqisi2
+	add	r3, r3, r2
+	ldrb	r2, [fp, #-87]	@ zero_extendqisi2
+	add	r3, r3, r2
+	ldrb	r2, [fp, #-86]	@ zero_extendqisi2
+	add	r3, r3, r2
+	ldrb	r2, [fp, #-85]	@ zero_extendqisi2
+	add	r3, r3, r2
+	str	r3, [fp, #-56]
+	b	.L49
+.L50:
+	vmov	q1, q5  @ v2di
+	vmov	q0, q4  @ v2di
+	bl	add
+	vmov	q4, q0  @ v2di
+	vmov	q0, q4  @ v2di
+	bl	shiftRight
+	vmov	q4, q0  @ v2di
+	ldr	r3, [fp, #-56]
+	sub	r3, r3, #1
+	str	r3, [fp, #-56]
+.L49:
+	ldr	r3, [fp, #-56]
+	cmp	r3, #0
+	bne	.L50
 	vmov	q1, q5  @ v2di
 	vmov	q0, q4  @ v2di
 	bl	greaterThanEqual
 	mov	r3, r0
 	cmp	r3, #0
-	beq	.L49
+	beq	.L51
 	vmov	q1, q5  @ v2di
 	vmov	q0, q4  @ v2di
 	bl	subtract
 	vmov	q4, q0  @ v2di
-.L49:
+.L51:
 	vmov	q8, q4  @ v2di
 	vmov	q0, q8  @ v2di
-	sub	sp, fp, #60
+	sub	sp, fp, #52
 	@ sp needed
 	vldm	sp!, {d8-d13}
-	pop	{r4, r5, fp, pc}
+	pop	{fp, pc}
+.L54:
+	.align	3
+.L53:
+	.word	176625
+	.word	0
+	.word	-423
 	.size	MMM_1, .-MMM_1
 	.align	2
 	.global	ME_MMM
@@ -564,110 +608,75 @@ MMM_1:
 	.fpu neon
 	.type	ME_MMM, %function
 ME_MMM:
-	@ args = 0, pretend = 0, frame = 32
+	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 1, uses_anonymous_args = 0
 	push	{fp, lr}
-	vpush.64	{d8, d9, d10, d11, d12, d13, d14, d15}
-	add	fp, sp, #68
-	sub	sp, sp, #32
-	vstr	d0, [fp, #-100]
-	vstr	d1, [fp, #-92]
-	vstr	d2, [fp, #-84]
-	vstr	d3, [fp, #-76]
-	mov	r2, #1
-	mov	r3, #0
-	mov	r0, #0
-	mov	r1, #0
-	bl	newU128
-	vmov	q6, q0  @ v2di
-	adr	r3, .L56
-	ldrd	r2, [r3]
-	ldr	r0, .L56+24
-	mvn	r1, #-1073741824
-	bl	newU128
+	vpush.64	{d8, d9, d10, d11, d12, d13}
+	add	fp, sp, #52
+	sub	sp, sp, #16
 	vmov	q4, q0  @ v2di
-	adr	r3, .L56+8
+	vstr	d2, [fp, #-68]
+	vstr	d3, [fp, #-60]
+	adr	r3, .L60
 	ldrd	r2, [r3]
-	adr	r1, .L56+16
+	adr	r1, .L60+8
 	ldrd	r0, [r1]
 	bl	newU128
-	vmov	q7, q0  @ v2di
-	b	.L52
-.L54:
-	vldr	d16, [fp, #-84]
-	vldr	d17, [fp, #-76]
+	vmov	q6, q0  @ v2di
+	vmov	q0, q6  @ v2di
+	bl	MMM_1
+	vmov	q5, q0  @ v2di
+	vmov	q1, q6  @ v2di
+	vmov	q0, q4  @ v2di
+	bl	MMM
+	vmov	q4, q0  @ v2di
+	b	.L56
+.L58:
+	vldr	d16, [fp, #-68]
+	vldr	d17, [fp, #-60]
 	vmov	q0, q8  @ v2di
 	bl	and_low
 	mov	r3, r0
 	cmp	r3, #0
-	beq	.L53
-	vmov	q2, q4  @ v2di
-	vmov	q1, q7  @ v2di
-	vldr	d0, [fp, #-100]
-	vldr	d1, [fp, #-92]
-	bl	MMM
-	vmov	q5, q0  @ v2di
-	vmov	q2, q4  @ v2di
-	vmov	q1, q7  @ v2di
-	vmov	q0, q6  @ v2di
-	bl	MMM
-	vmov	q6, q0  @ v2di
-	vmov	q2, q4  @ v2di
-	vmov	q1, q6  @ v2di
-	vmov	q0, q5  @ v2di
-	bl	MMM
-	vmov	q5, q0  @ v2di
+	beq	.L57
 	vmov	q1, q4  @ v2di
 	vmov	q0, q5  @ v2di
-	bl	MMM_1
-	vmov	q6, q0  @ v2di
-.L53:
-	vmov	q2, q4  @ v2di
-	vmov	q1, q7  @ v2di
-	vldr	d0, [fp, #-100]
-	vldr	d1, [fp, #-92]
 	bl	MMM
 	vmov	q5, q0  @ v2di
-	vmov	q2, q4  @ v2di
-	vmov	q1, q5  @ v2di
-	vmov	q0, q5  @ v2di
-	bl	MMM
-	vmov	q5, q0  @ v2di
+.L57:
 	vmov	q1, q4  @ v2di
-	vmov	q0, q5  @ v2di
-	bl	MMM_1
-	vstr	d0, [fp, #-100]
-	vstr	d1, [fp, #-92]
-	vldr	d16, [fp, #-84]
-	vldr	d17, [fp, #-76]
+	vmov	q0, q4  @ v2di
+	bl	MMM
+	vmov	q4, q0  @ v2di
+	vldr	d16, [fp, #-68]
+	vldr	d17, [fp, #-60]
 	vmov	q0, q8  @ v2di
 	bl	shiftRight
 	vmov	q8, q0  @ v2di
-	vstr	d16, [fp, #-84]
-	vstr	d17, [fp, #-76]
-.L52:
-	ldrd	r2, [fp, #-84]
-	orrs	r3, r2, r3
-	bne	.L54
-	ldrd	r2, [fp, #-76]
-	orrs	r3, r2, r3
-	bne	.L54
-	vmov	q8, q6  @ v2di
-	vmov	q0, q8  @ v2di
-	sub	sp, fp, #68
-	@ sp needed
-	vldm	sp!, {d8-d15}
-	pop	{fp, pc}
-.L57:
-	.align	3
+	vstr	d16, [fp, #-68]
+	vstr	d17, [fp, #-60]
 .L56:
-	.word	176625
-	.word	0
+	ldrd	r2, [fp, #-68]
+	orrs	r3, r2, r3
+	bne	.L58
+	ldrd	r2, [fp, #-60]
+	orrs	r3, r2, r3
+	bne	.L58
+	vmov	q0, q5  @ v2di
+	bl	MMM_1
+	vmov	q8, q0  @ v2di
+	vmov	q0, q8  @ v2di
+	sub	sp, fp, #52
+	@ sp needed
+	vldm	sp!, {d8-d13}
+	pop	{fp, pc}
+.L61:
+	.align	3
+.L60:
 	.word	-727667363
 	.word	-23
 	.word	153323117
 	.word	0
-	.word	-423
 	.size	ME_MMM, .-ME_MMM
 	.align	2
 	.global	Encypt
@@ -676,43 +685,6 @@ ME_MMM:
 	.fpu neon
 	.type	Encypt, %function
 Encypt:
-	@ args = 0, pretend = 0, frame = 16
-	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{fp, lr}
-	add	fp, sp, #4
-	sub	sp, sp, #16
-	vstr	d0, [fp, #-20]
-	vstr	d1, [fp, #-12]
-	adr	r3, .L60
-	ldrd	r2, [r3]
-	adr	r1, .L60+8
-	ldrd	r0, [r1]
-	bl	newU128
-	vmov	q8, q0  @ v2di
-	vmov	q1, q8  @ v2di
-	vldr	d0, [fp, #-20]
-	vldr	d1, [fp, #-12]
-	bl	ME_MMM
-	vmov	q8, q0  @ v2di
-	vmov	q0, q8  @ v2di
-	sub	sp, fp, #4
-	@ sp needed
-	pop	{fp, pc}
-.L61:
-	.align	3
-.L60:
-	.word	463131873
-	.word	1121068490
-	.word	1046843180
-	.word	947050211
-	.size	Encypt, .-Encypt
-	.align	2
-	.global	Decrypt
-	.syntax unified
-	.arm
-	.fpu neon
-	.type	Decrypt, %function
-Decrypt:
 	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 1, uses_anonymous_args = 0
 	push	{fp, lr}
@@ -738,6 +710,43 @@ Decrypt:
 .L65:
 	.align	3
 .L64:
+	.word	463131873
+	.word	1121068490
+	.word	1046843180
+	.word	947050211
+	.size	Encypt, .-Encypt
+	.align	2
+	.global	Decrypt
+	.syntax unified
+	.arm
+	.fpu neon
+	.type	Decrypt, %function
+Decrypt:
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	add	fp, sp, #4
+	sub	sp, sp, #16
+	vstr	d0, [fp, #-20]
+	vstr	d1, [fp, #-12]
+	adr	r3, .L68
+	ldrd	r2, [r3]
+	adr	r1, .L68+8
+	ldrd	r0, [r1]
+	bl	newU128
+	vmov	q8, q0  @ v2di
+	vmov	q1, q8  @ v2di
+	vldr	d0, [fp, #-20]
+	vldr	d1, [fp, #-12]
+	bl	ME_MMM
+	vmov	q8, q0  @ v2di
+	vmov	q0, q8  @ v2di
+	sub	sp, fp, #4
+	@ sp needed
+	pop	{fp, pc}
+.L69:
+	.align	3
+.L68:
 	.word	-834791263
 	.word	-370256966
 	.word	-343159921
@@ -783,23 +792,23 @@ main:
 	sub	sp, sp, #144
 	str	r0, [fp, #-136]
 	str	r1, [fp, #-140]
-	ldr	r1, .L71+8
-	ldr	r0, .L71+12
+	ldr	r1, .L75+8
+	ldr	r0, .L75+12
 	bl	fopen
 	str	r0, [fp, #-8]
-	ldr	r1, .L71+16
-	ldr	r0, .L71+20
+	ldr	r1, .L75+16
+	ldr	r0, .L75+20
 	bl	fopen
 	str	r0, [fp, #-12]
 	ldr	r3, [fp, #-12]
 	mov	r2, #16
 	mov	r1, #1
-	ldr	r0, .L71+24
+	ldr	r0, .L75+24
 	bl	fwrite
 	bl	clock
 	str	r0, [fp, #-16]
-	b	.L67
-.L69:
+	b	.L71
+.L73:
 	mov	r3, #0
 	str	r3, [fp, #-20]
 	mov	r3, #0
@@ -836,7 +845,7 @@ main:
 	sub	r3, r2, r3
 	vmov	s15, r3	@ int
 	vcvt.f64.s32	d17, s15
-	vldr.64	d18, .L71
+	vldr.64	d18, .L75
 	vdiv.f64	d16, d17, d18
 	vstr.64	d16, [fp, #-92]
 	ldr	r2, [fp, #-32]
@@ -844,13 +853,13 @@ main:
 	sub	r3, r2, r3
 	vmov	s15, r3	@ int
 	vcvt.f64.s32	d17, s15
-	vldr.64	d18, .L71
+	vldr.64	d18, .L75
 	vdiv.f64	d16, d17, d18
 	vstr.64	d16, [fp, #-100]
 	ldrd	r2, [fp, #-100]
 	strd	r2, [sp]
 	ldrd	r2, [fp, #-92]
-	ldr	r1, .L71+28
+	ldr	r1, .L75+28
 	ldr	r0, [fp, #-12]
 	bl	fprintf
 	vldr	d2, [fp, #-84]
@@ -860,12 +869,12 @@ main:
 	bl	equal
 	mov	r3, r0
 	cmp	r3, #0
-	bne	.L67
-	ldr	r0, .L71+32
+	bne	.L71
+	ldr	r0, .L75+32
 	bl	puts
 	mov	r3, #1
-	b	.L70
-.L67:
+	b	.L74
+.L71:
 	sub	r3, fp, #132
 	ldr	r2, [fp, #-8]
 	mov	r1, #15
@@ -873,7 +882,7 @@ main:
 	bl	fgets
 	mov	r3, r0
 	cmp	r3, #0
-	bne	.L69
+	bne	.L73
 	bl	clock
 	str	r0, [fp, #-104]
 	ldr	r0, [fp, #-8]
@@ -885,21 +894,21 @@ main:
 	sub	r3, r2, r3
 	vmov	s15, r3	@ int
 	vcvt.f64.s32	d17, s15
-	vldr.64	d18, .L71
+	vldr.64	d18, .L75
 	vdiv.f64	d16, d17, d18
 	vstr.64	d16, [fp, #-116]
 	ldrd	r2, [fp, #-116]
-	ldr	r0, .L71+36
+	ldr	r0, .L75+36
 	bl	printf
 	mov	r3, #1
-.L70:
+.L74:
 	mov	r0, r3
 	sub	sp, fp, #4
 	@ sp needed
 	pop	{fp, pc}
-.L72:
+.L76:
 	.align	3
-.L71:
+.L75:
 	.word	0
 	.word	1093567616
 	.word	.LC1

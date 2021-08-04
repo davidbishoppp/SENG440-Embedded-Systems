@@ -32,8 +32,9 @@
  * @param M Modulo
  * @return = X*Y*R^-1 % M
 */
-uint64x2_t MMM(register uint64x2_t X, register uint64x2_t Y, register uint64x2_t M) {
+uint64x2_t MMM(register uint64x2_t X, register uint64x2_t Y) {
 	register uint64x2_t Z = newU128_0();
+	register uint64x2_t M = newU128(M_HIGH, M_LOW);
 	register int i, X1;
 	register const int Y1 = and_low(Y);
 	// TODO: Load in only important 32bits at a time???
@@ -61,8 +62,9 @@ uint64x2_t MMM(register uint64x2_t X, register uint64x2_t Y, register uint64x2_t
  * @param M Modulo
  * @return = X*1*R^-1 % M
 */
-uint64x2_t MMM_1(register uint64x2_t Y, register uint64x2_t M) {
+uint64x2_t MMM_1(register uint64x2_t Y) {
 	register uint64x2_t Z = newU128_0();
+	register uint64x2_t M = newU128(M_HIGH, M_LOW);
 	register int i;
 	if (and_low(Y)) {
 		Z = add(Z, M);
@@ -89,24 +91,20 @@ uint64x2_t MMM_1(register uint64x2_t Y, register uint64x2_t M) {
  * @return = B^E mod M
  */
 uint64x2_t ME_MMM(register uint64x2_t B, register uint64x2_t Exp) {
-	register uint64x2_t Z = newU128(0, 1);
-	register uint64x2_t M = newU128(M_HIGH, M_LOW);
+	register uint64x2_t Z;
 	register uint64x2_t R2 = newU128(R2_HIGH, R2_LOW);
-	register uint64x2_t X_bar, Y_bar, Z_bar;
+
+	Z = MMM_1(R2); // Prescale Z
+	B = MMM(B, R2); // Prescale B
 
 	while (Exp[LOW] || Exp[HIGH]) {
 		if(and_low(Exp)) {
-			X_bar = MMM(B, R2, M);
-			Y_bar = MMM(Z, R2, M);
-			Z_bar = MMM(X_bar, Y_bar, M);
-			Z = MMM_1(Z_bar, M);
+			Z = MMM(Z, B);
 		}
-		X_bar = MMM(B, R2, M);
-		Z_bar = MMM(X_bar, X_bar, M);
-		B = MMM_1(Z_bar, M);
+		B = MMM(B, B);
 		Exp = shiftRight(Exp);
 	}
-	return Z;
+	return MMM_1(Z);
 }
 
 /**
