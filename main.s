@@ -504,12 +504,11 @@ MMM:
 	.fpu neon
 	.type	MMM_1, %function
 MMM_1:
-	@ args = 0, pretend = 0, frame = 40
+	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 1, uses_anonymous_args = 0
-	push	{fp, lr}
+	push	{r4, r5, fp, lr}
 	vpush.64	{d8, d9, d10, d11, d12, d13}
-	add	fp, sp, #52
-	sub	sp, sp, #40
+	add	fp, sp, #60
 	vmov	q6, q0  @ v2di
 	bl	newU128_0
 	vmov	q4, q0  @ v2di
@@ -536,46 +535,25 @@ MMM_1:
 	vmov	q0, q4  @ v2di
 	bl	shiftRight
 	vmov	q4, q0  @ v2di
-	vmov	q8, q4  @ v16qi
-	vstr	d16, [fp, #-76]
-	vstr	d17, [fp, #-68]
-	vldr	d16, [fp, #-76]
-	vldr	d17, [fp, #-68]
-	vcnt.8	q8, q8
-	vstr	d16, [fp, #-92]
-	vstr	d17, [fp, #-84]
-	ldrb	r3, [fp, #-92]	@ zero_extendqisi2
-	mov	r2, r3
-	ldrb	r3, [fp, #-91]	@ zero_extendqisi2
-	add	r3, r2, r3
-	ldrb	r2, [fp, #-90]	@ zero_extendqisi2
-	add	r3, r3, r2
-	ldrb	r2, [fp, #-89]	@ zero_extendqisi2
-	add	r3, r3, r2
-	ldrb	r2, [fp, #-88]	@ zero_extendqisi2
-	add	r3, r3, r2
-	ldrb	r2, [fp, #-87]	@ zero_extendqisi2
-	add	r3, r3, r2
-	ldrb	r2, [fp, #-86]	@ zero_extendqisi2
-	add	r3, r3, r2
-	ldrb	r2, [fp, #-85]	@ zero_extendqisi2
-	add	r3, r3, r2
-	str	r3, [fp, #-56]
-	b	.L49
+	mov	r4, #125
+	b	.L48
 .L50:
+	vmov	q0, q4  @ v2di
+	bl	and_low
+	mov	r3, r0
+	cmp	r3, #0
+	beq	.L49
 	vmov	q1, q5  @ v2di
 	vmov	q0, q4  @ v2di
 	bl	add
 	vmov	q4, q0  @ v2di
+.L49:
 	vmov	q0, q4  @ v2di
 	bl	shiftRight
 	vmov	q4, q0  @ v2di
-	ldr	r3, [fp, #-56]
-	sub	r3, r3, #1
-	str	r3, [fp, #-56]
-.L49:
-	ldr	r3, [fp, #-56]
-	cmp	r3, #0
+	sub	r4, r4, #1
+.L48:
+	cmp	r4, #0
 	bne	.L50
 	vmov	q1, q5  @ v2di
 	vmov	q0, q4  @ v2di
@@ -590,10 +568,10 @@ MMM_1:
 .L51:
 	vmov	q8, q4  @ v2di
 	vmov	q0, q8  @ v2di
-	sub	sp, fp, #52
+	sub	sp, fp, #60
 	@ sp needed
 	vldm	sp!, {d8-d13}
-	pop	{fp, pc}
+	pop	{r4, r5, fp, pc}
 .L54:
 	.align	3
 .L53:
@@ -617,6 +595,8 @@ ME_MMM:
 	vmov	q4, q0  @ v2di
 	vstr	d2, [fp, #-68]
 	vstr	d3, [fp, #-60]
+	bl	newU128_0
+	vmov	q5, q0  @ v2di
 	adr	r3, .L60
 	ldrd	r2, [r3]
 	adr	r1, .L60+8

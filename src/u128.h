@@ -3,22 +3,30 @@
 #include <string.h>
 #include <arm_neon.h>
 
-#define LENGTH 2
-#define U128_SET    0xffffffffffffffff
-#define MSB_LSB_SET 0x8000000000000001
-#define MSB_SET     0x8000000000000000
-#define ULL_11      0x1000000000000001
-#define HIGH 1
-#define LOW 1-HIGH // 0 or 1
-
+#define LENGTH 2						//standard length of our temp arrays
+#define U128_SET    0xffffffffffffffff	//var with all 128 bits set to 1 [used for testing]
+#define MSB_LSB_SET 0x8000000000000001	//128-bit MSB and LSB set [used for testing]
+#define MSB_SET     0x8000000000000000	//128-bit with MSB set [used for testing]
+#define ULL_11      0x1000000000000001	//128-bit with 1 as MS byte and LS byte [used for testing]
+#define HIGH 1							//constant to index our length-2 arrays and setting endian
+#define LOW 1-HIGH // 0 or 1			//index for low portion of our arrays
 #define PRINT_IN_HEX 1
 
+
+/**
+ * Perfoms logical AND bitwise operation on LSB of input using 128-bit NEON registers
+ * @param a Input
+ * @return LSB of input
+ */
 static inline uint32_t and_low(uint64x2_t a) {
 	return (uint32_t) (a[LOW] & 1);
 }
 
 /**
- * Make a new u128.
+ * Create a new NEON vector from high and low uint64_t variables
+ * @param high upper half of 128
+ * @param low lower half of 128
+ * @return new 128-bit NEON vector
  */
 static inline uint64x2_t newU128(uint64_t high, uint64_t low) {
 	uint64_t tmp[LENGTH];
@@ -28,21 +36,26 @@ static inline uint64x2_t newU128(uint64_t high, uint64_t low) {
 }
 
 /**
- * Make a new u128 that is zero.
+ * Initialize an empty 128-bit NEON vector as 0.
+ * @return new 128-bit NEON vector
  */
 static inline uint64x2_t newU128_0() {
 	return vmovq_n_u64(0);
 }
 
 /**
- * Make a new u128 from str.
+ * Places provided string into a new 128-bit NEON vector.
+ * @param str input string from main.c
+ * @return new 128-bit NEON vector
  */
 static inline uint64x2_t u128FromChar(char* str) {
 	return vreinterpretq_u64_u8(vld1q_s8((const signed char*)str));
 }
 
 /**
- * Print u128.
+ * Prints the contents of a 128-bit NEON register
+ * @param a the vector to be printed
+ * @param label a descriptive label for the print
  */
 void printU128(uint64x2_t a, const char* label) {
 	if (PRINT_IN_HEX) {
@@ -61,10 +74,8 @@ void printU128(uint64x2_t a, const char* label) {
 }
 
 /**
- * Bit shift right.
- * 
+ * Perform a bitwise shift of 1 to the right on a 128-bit NEON vector.
  * @param a Operand
- * @param b Number to shift by.
  * @return a shifted right by b.
  */
 static inline uint64x2_t shiftRight(uint64x2_t a) {
@@ -74,10 +85,9 @@ static inline uint64x2_t shiftRight(uint64x2_t a) {
 }
 
 /**
- * Add two 128bit numbers through u128.
- * 
- * @param a Operand 1
- * @param b Operand 2
+ * Add two 128-bit NEON vectors together with carry.
+ * @param a First NEON vector
+ * @param b Second NEON vector
  * @return a + b
  */
 static inline uint64x2_t add(uint64x2_t a, uint64x2_t b) {
@@ -87,10 +97,9 @@ static inline uint64x2_t add(uint64x2_t a, uint64x2_t b) {
 }
 
 /**
- * Subtract two 128bit numbers through u128.
- * 
- * @param a Operand 1.
- * @param b Operand 2.
+ * Subtract two 128-bit NEON vectors with carry.
+ * @param a First NEON vector
+ * @param b Second NEON vector
  * @return a - b
  */
 static inline uint64x2_t subtract(uint64x2_t a, uint64x2_t b) {
@@ -100,7 +109,10 @@ static inline uint64x2_t subtract(uint64x2_t a, uint64x2_t b) {
 }
 
 /**
- * a > b
+ * Compares the contents of two 128-bit NEON vectors.
+ * @param a First NEON vector
+ * @param b Second NEON vector
+ * @return a >= b
  */
 uint32_t greaterThanEqual(uint64x2_t a, uint64x2_t b) {
 	uint64_t a_low = a[LOW];
@@ -112,7 +124,10 @@ uint32_t greaterThanEqual(uint64x2_t a, uint64x2_t b) {
 }
 
 /**
- * a == b
+ * Compare the contents of two 128-bit NEON vectors
+ * @param a First NEON vecotr
+ * @param b Second NEON vector
+ * @return a == b
  */
 uint32_t equal(uint64x2_t a, uint64x2_t b) {
 	uint64_t a_low = a[LOW];
@@ -123,12 +138,7 @@ uint32_t equal(uint64x2_t a, uint64x2_t b) {
 	return 0;
 }
 
-/**
- * Copy uint8_t array into uint64x2_t.
- */
-static inline uint64x2_t copyStr(const char* str) {
-	return newU128(0, atoll(str));
-}
+// [Below is old testing code. Unit test that were used when creating u128.h]
 
 // int main(void) {
 // 	uint64x2_t a = newU128(0LLU, MSB_LSB_SET);

@@ -7,7 +7,7 @@ import string
 NUM_INPUTS = 2000
 MAX_MESSAGE = 15
 
-with open("./inputs.txt", "w+") as file:
+with open("./inputs_new.txt", "w+") as file:
 	for x in range(NUM_INPUTS):
 		message = ''
 		for i in range(MAX_MESSAGE):

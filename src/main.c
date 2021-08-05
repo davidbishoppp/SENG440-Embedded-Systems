@@ -5,19 +5,22 @@
 #include <time.h>
 #include "RSA.h"
 
-#define MESSAGE_PATH "./generator/inputs_new.txt"
-#define MAX_MESSAGE 15
+#define MESSAGE_PATH "./generator/inputs_new.txt" //path to inputs
+#define MAX_MESSAGE 15 //byte size of each input message
 
 int main(int argc, char* argv[]) {
-	uint64x2_t message;
+	uint64x2_t message; //variable for the message
 
-	//timing
+	//timing clock varibles
 	clock_t encrypt_start, encrypt_end, decrypt_start, decrypt_end, loop_start, loop_end;
 
+	//parse from file
 	char line[MAX_MESSAGE];
 	FILE* stream = fopen(MESSAGE_PATH, "r");
 	FILE* output = fopen("./results/results.csv", "w+");
 	fprintf(output, "encrypt,decrypt\n");
+
+
 	loop_start = clock();
 	while (fgets(line, MAX_MESSAGE, stream) != NULL) {
 		encrypt_start = 0;
@@ -25,28 +28,23 @@ int main(int argc, char* argv[]) {
 		decrypt_start = 0;
 		decrypt_end = 0;
 
-		//fprintf(stderr, "Line: %s\n" line);
-
 		message = u128FromChar(line);
-		//printU128(message, "Message");
 
+		//encrypt line
 		encrypt_start = clock();
 		uint64x2_t encrypted = Encypt(message);
 		encrypt_end = clock();
-		//printU128(encrypted, "Encrypted");
 
+		//decrypt line
 		decrypt_start = clock();
 		uint64x2_t decrypted = Decrypt(encrypted);
 		decrypt_end = clock();
 
 		double encrypt_time = (double)(encrypt_end - encrypt_start) / CLOCKS_PER_SEC;
 		double decrypt_time = (double)(decrypt_end - decrypt_start) / CLOCKS_PER_SEC;
-		//printf("encrypt time: %.7f\n", encrypt_time);
-		//printf("decrypt time: %.7f\n", decrypt_time);
 		fprintf(output, "%.7f,%.7f\n", encrypt_time, decrypt_time);
 
-		//printU128(decrypted, "Decrypted");
-
+		//check process was correct
 		if (!equal(message, decrypted)) {
 			printf("NOT euqal!\n");
 			return 1;
@@ -58,7 +56,6 @@ int main(int argc, char* argv[]) {
 
 	double loop_time = (double)(loop_end - loop_start) / CLOCKS_PER_SEC;
 	printf("loop time: %.20f\n", loop_time);
-	//fprintf(output, "%.20f", loop_time);
 
 	return 1;
 }
