@@ -53,3 +53,6 @@ dkms.conf
 
 # Built
 main
+
+#vscode
+.vscode/
