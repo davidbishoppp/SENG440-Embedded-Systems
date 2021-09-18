@@ -1,7 +1,9 @@
 # SENG440 - 128-Bit RSA Cryptography Implementation
 
 SENG440 - Embedded Systems - Summer 2021
+
 University of Victoria
+
 David Bishop & Ben Austin
 
 ## Platform and Usage
